@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using livepaper.Models;
 
 namespace livepaper.Helpers;
@@ -19,8 +21,34 @@ public static class LibraryService
     {
         if (File.Exists(item.VideoPath)) File.Delete(item.VideoPath);
         if (item.ThumbnailPath != null && File.Exists(item.ThumbnailPath)) File.Delete(item.ThumbnailPath);
-        string idFile = Path.ChangeExtension(item.VideoPath, ".id");
-        if (File.Exists(idFile)) File.Delete(idFile);
+
+        foreach (var ext in new[] { ".jpg", ".png", ".gif", ".jpeg" })
+        {
+            var f = Path.ChangeExtension(item.VideoPath, ext);
+            if (File.Exists(f)) File.Delete(f);
+        }
+
+        foreach (var ext in new[] { ".id", ".crashed", ".whitelist", ".volume", ".speed" })
+        {
+            var f = Path.ChangeExtension(item.VideoPath, ext);
+            if (File.Exists(f)) File.Delete(f);
+        }
+    }
+
+    public static void MarkCrashed(string videoPath)
+    {
+        try { File.WriteAllText(Path.ChangeExtension(videoPath, ".crashed"), ""); } catch { }
+    }
+
+    public static void SetWhitelisted(string videoPath, bool whitelisted)
+    {
+        var path = Path.ChangeExtension(videoPath, ".whitelist");
+        try
+        {
+            if (whitelisted) File.WriteAllText(path, "");
+            else if (File.Exists(path)) File.Delete(path);
+        }
+        catch { }
     }
 
     public static List<LibraryItem> LoadAll()
@@ -40,20 +68,98 @@ public static class LibraryService
             }
 
             string title = Path.GetFileNameWithoutExtension(mp4);
-            string jpg = Path.ChangeExtension(mp4, ".jpg");
+            string? thumb = FindLibraryThumbnail(mp4);
 
             string idFile = Path.ChangeExtension(mp4, ".id");
             string? sourceId = File.Exists(idFile) ? File.ReadAllText(idFile).Trim() : null;
+            string? workshopId = ParseWorkshopId(sourceId, mp4, idFile);
+            bool hasCrashed = File.Exists(Path.ChangeExtension(mp4, ".crashed"));
+            bool isWhitelisted = File.Exists(Path.ChangeExtension(mp4, ".whitelist"));
+            var fi = new FileInfo(mp4);
 
             items.Add(new LibraryItem
             {
                 Title = title,
                 VideoPath = mp4,
-                ThumbnailPath = File.Exists(jpg) ? jpg : null,
-                SourceId = sourceId
+                ThumbnailPath = thumb,
+                SourceId = sourceId,
+                WorkshopId = workshopId,
+                HasCrashed = hasCrashed,
+                IsWhitelisted = isWhitelisted,
+                AddedAt = fi.CreationTime
             });
         }
+
+        foreach (var scene in Directory.GetFiles(DownloadHelper.LibraryPath, "*.scene"))
+        {
+            string title = Path.GetFileNameWithoutExtension(scene);
+            string? thumb = FindLibraryThumbnail(scene);
+            string idFile = Path.ChangeExtension(scene, ".id");
+            string? sourceId = File.Exists(idFile) ? File.ReadAllText(idFile).Trim() : null;
+            string? workshopId = null;
+            try { workshopId = File.ReadAllText(scene).Trim(); } catch { }
+            bool hasCrashed = File.Exists(Path.ChangeExtension(scene, ".crashed"));
+            bool isWhitelisted = File.Exists(Path.ChangeExtension(scene, ".whitelist"));
+            var fi = new FileInfo(scene);
+
+            items.Add(new LibraryItem
+            {
+                Title = title,
+                VideoPath = scene,
+                ThumbnailPath = thumb,
+                SourceId = sourceId,
+                IsScene = true,
+                WorkshopId = workshopId,
+                HasCrashed = hasCrashed,
+                IsWhitelisted = isWhitelisted,
+                AddedAt = fi.CreationTime
+            });
+        }
+
         return items;
+    }
+
+    private static string? FindLibraryThumbnail(string mediaPath)
+    {
+        string dir = Path.GetDirectoryName(mediaPath) ?? "";
+        string name = Path.GetFileNameWithoutExtension(mediaPath);
+        foreach (var file in Directory.EnumerateFiles(dir, name + ".*"))
+        {
+            string ext = Path.GetExtension(file).ToLower();
+            if (ext == ".jpg" || ext == ".png" || ext == ".gif" || ext == ".jpeg")
+                return file;
+        }
+        return null;
+    }
+
+    private static string? ParseWorkshopId(string? sourceId, string mp4, string idFile)
+    {
+        if (sourceId == null) return null;
+        if (long.TryParse(sourceId, out _)) return sourceId;
+        if (sourceId.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return null;
+
+        // Local path — extract numeric workshop ID from path segments
+        var parts = sourceId.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < parts.Length - 1; i++)
+        {
+            if ((parts[i] == "431960" || parts[i].Equals("workshop", StringComparison.OrdinalIgnoreCase))
+                && long.TryParse(parts[i + 1], out _))
+            {
+                string id = parts[i + 1];
+                try { File.WriteAllText(idFile, id); } catch { }
+                return id;
+            }
+        }
+        // Fallback: any purely numeric 8+ digit segment
+        foreach (var part in parts)
+        {
+            if (part.Length >= 8 && long.TryParse(part, out _))
+            {
+                try { File.WriteAllText(idFile, part); } catch { }
+                return part;
+            }
+        }
+        return null;
     }
 
     private static bool IsSymlink(string path)

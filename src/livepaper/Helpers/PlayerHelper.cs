@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using livepaper.Models;
 
 namespace livepaper.Helpers;
@@ -31,7 +32,27 @@ public static class PlayerHelper
     private static CancellationTokenSource? _daemonCts;
     public static CancellationToken DaemonToken => _daemonCts?.Token ?? CancellationToken.None;
 
-    public static bool IsPlaying => File.Exists(IpcSocket) && Process.GetProcessesByName("mpvpaper").Length > 0;
+    public static bool IsPlaying =>
+        (File.Exists(IpcSocket) && Process.GetProcessesByName("mpvpaper").Length > 0) ||
+        IsLweRunning;
+
+    private static bool IsLweRunning
+    {
+        get
+        {
+            try
+            {
+                if (!File.Exists(LwePidPath)) return false;
+                return File.ReadAllLines(LwePidPath).Any(line =>
+                {
+                    if (!int.TryParse(line.Trim(), out int pid)) return false;
+                    try { using var p = Process.GetProcessById(pid); return !p.HasExited; }
+                    catch { return false; }
+                });
+            }
+            catch { return false; }
+        }
+    }
 
     // Stale-tolerant check that survives the brief gap during a timed-playlist
     // switch where mpvpaper has been killed but the next instance hasn't launched.
@@ -57,6 +78,10 @@ public static class PlayerHelper
     private static string TimerDaemonPidPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
         ".config", "livepaper", "timer.pid");
+
+    private static string LwePidPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        ".config", "livepaper", "lwe.pid");
 
     private static string GuiTimerPidPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
@@ -194,6 +219,7 @@ public static class PlayerHelper
     }
 
     public static Action? OnTimedPlaylistStopped;
+    public static Action<string>? OnSceneCrashed;
 
     private record TimedState(
         List<string> Paths, int Index,
@@ -288,6 +314,14 @@ public static class PlayerHelper
     {
         lock (_lock)
         {
+            if (IsScenePath(videoPath))
+            {
+                var s = SettingsService.Load();
+                if (!s.AllowScenes)
+                    throw new InvalidOperationException("Enable \"Allow scene support\" in Settings to play scenes");
+                if (!IsLweAvailable())
+                    throw new InvalidOperationException("linux-wallpaperengine not found in PATH — install it to use scenes");
+            }
             TeardownTimer();
             ClearTimedStateFile();
             SwitchToFile(videoPath, mpvOptions);
@@ -409,6 +443,14 @@ public static class PlayerHelper
             RefreshSignals();
             if (_timedPaths == null) return;
 
+            // If the current scene crashed, signal and advance immediately
+            if (_history != null && _historyIndex >= 0 && _historyIndex < _history.Count &&
+                IsScenePath(_history[_historyIndex]) && !IsLweRunning)
+            {
+                OnSceneCrashed?.Invoke(_history[_historyIndex]);
+                _timedRemainingMs = 0;
+            }
+
             if (_timedTimerStopped)
             {
                 // Cover the race where CLI's Stop ran during our kill→launch
@@ -462,7 +504,33 @@ public static class PlayerHelper
     // doing previously (e.g., transitioning from Play All).
     private static void SwitchToFile(string path, string mpvOptions)
     {
-        if (IsPlaying && TryIpcSwitchToFile(path))
+        if (IsScenePath(path))
+        {
+            KillCurrentProcess(); // kill mpvpaper if running
+            var settings = SettingsService.Load();
+            if (!settings.AllowScenes || !IsLweAvailable()) return;
+            var workshopId = File.ReadAllText(path).Trim();
+            int lweCount = LaunchScene(workshopId, settings);
+            if (lweCount > 0)
+            {
+                var volOverride = ReadVolumeOverride(path);
+                _ = Task.Run(async () =>
+                {
+                    for (int i = 0; i < 60; i++)
+                    {
+                        if (GetLweSinkInputIds().Count >= lweCount) break;
+                        await Task.Delay(50);
+                    }
+                    ApplyLweMute(AudioMonitor.IsMuted);
+                    if (volOverride.HasValue) ApplyLweVolume(volOverride.Value);
+                });
+            }
+            return;
+        }
+
+        KillLweProcess(); // switching away from a scene if one was running
+        bool mpvAlive = File.Exists(IpcSocket) && Process.GetProcessesByName("mpvpaper").Length > 0;
+        if (mpvAlive && TryIpcSwitchToFile(path))
         {
             // _current still references the existing process; nothing to update.
         }
@@ -739,11 +807,17 @@ public static class PlayerHelper
         }
     }
 
-    public static void SetMute(bool mute) =>
+    public static void SetMute(bool mute)
+    {
         SendCommand("set_property", "mute", mute);
+        if (IsLweRunning) ApplyLweMute(mute);
+    }
 
-    public static void SetVolume(int volume) =>
+    public static void SetVolume(int volume)
+    {
         SendCommand("set_property", "volume", (double)volume);
+        if (IsLweRunning) ApplyLweVolume(volume);
+    }
 
     // Adjust volume by `delta` (clamped 0-100). Updates the persisted setting
     // so subsequent launches and the GUI slider reflect the change, and also
@@ -827,9 +901,28 @@ public static class PlayerHelper
                 try { proc.Kill(entireProcessTree: true); } catch { }
             }
         }
+        KillLweProcess();
         _current = null;
         var socketPath = IpcSocket;
         if (File.Exists(socketPath)) File.Delete(socketPath);
+    }
+
+    private static void KillLweProcess()
+    {
+        try
+        {
+            if (File.Exists(LwePidPath))
+            {
+                foreach (var line in File.ReadAllLines(LwePidPath))
+                {
+                    if (!int.TryParse(line.Trim(), out int pid)) continue;
+                    try { using var p = Process.GetProcessById(pid); p.Kill(entireProcessTree: true); }
+                    catch { }
+                }
+                File.Delete(LwePidPath);
+            }
+        }
+        catch { }
     }
 
     private static void ClearTimedStateFile()
@@ -870,5 +963,162 @@ public static class PlayerHelper
     {
         TeardownTimer();
         KillCurrentProcess();
+    }
+
+    public static bool IsLweAvailable()
+    {
+        try
+        {
+            var psi = new ProcessStartInfo("which")
+            {
+                Arguments = "linux-wallpaperengine",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            using var proc = Process.Start(psi);
+            proc?.WaitForExit();
+            return proc?.ExitCode == 0;
+        }
+        catch { return false; }
+    }
+
+    public static bool IsScenePath(string path) =>
+        path.EndsWith(".scene", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsSkippedPath(string path)
+    {
+        if (!IsScenePath(path)) return false;
+        var s = SettingsService.Load();
+        return !s.AllowScenes || !IsLweAvailable();
+    }
+
+    // Spawns one linux-wallpaperengine process per monitor. Returns the number of processes started.
+    private static int LaunchScene(string workshopId, AppSettings settings)
+    {
+        KillLweProcess(); // kill any existing LWE before spawning new ones
+        var pids = new List<string>();
+        bool anyPrimary = settings.LweMonitors.Any(m => m.IsPrimary);
+
+        foreach (var monitor in settings.LweMonitors)
+        {
+            if (string.IsNullOrWhiteSpace(monitor.Name)) continue;
+            var psi = new ProcessStartInfo("setsid")
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            psi.ArgumentList.Add("linux-wallpaperengine");
+            psi.ArgumentList.Add("--noautomute");
+            psi.ArgumentList.Add("--screen-root");
+            psi.ArgumentList.Add(monitor.Name);
+
+            bool hasAudio = !anyPrimary || monitor.IsPrimary;
+            if (settings.NoAudio || !hasAudio)
+                psi.ArgumentList.Add("--silent");
+            else
+            {
+                psi.ArgumentList.Add("--volume");
+                psi.ArgumentList.Add("100");
+            }
+
+            if (monitor.Fps > 0)
+            {
+                psi.ArgumentList.Add("--fps");
+                psi.ArgumentList.Add(monitor.Fps.ToString());
+            }
+            psi.ArgumentList.Add("--no-fullscreen-pause");
+            psi.ArgumentList.Add(workshopId);
+
+            var proc = Process.Start(psi);
+            if (proc != null)
+            {
+                proc.BeginOutputReadLine();
+                proc.BeginErrorReadLine();
+                pids.Add(proc.Id.ToString());
+            }
+        }
+
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(LwePidPath)!);
+            File.WriteAllLines(LwePidPath, pids);
+        }
+        catch { }
+        return pids.Count;
+    }
+
+    private static List<int> GetLweSinkInputIds()
+    {
+        try
+        {
+            var psi = new ProcessStartInfo("pactl")
+            {
+                Arguments = "list sink-inputs",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            using var proc = Process.Start(psi)!;
+            var output = proc.StandardOutput.ReadToEnd();
+            proc.WaitForExit();
+
+            var ids = new List<int>();
+            int currentId = -1;
+            foreach (var line in output.Split('\n'))
+            {
+                var trimmed = line.Trim();
+                if (trimmed.StartsWith("Sink Input #"))
+                {
+                    if (int.TryParse(trimmed.Substring("Sink Input #".Length), out int id))
+                        currentId = id;
+                }
+                else if (trimmed.Contains("application.name = \"SDL Application\"") && currentId >= 0)
+                {
+                    ids.Add(currentId);
+                    currentId = -1;
+                }
+            }
+            return ids;
+        }
+        catch { return []; }
+    }
+
+    private static void ApplyLweVolume(int volume)
+    {
+        foreach (var id in GetLweSinkInputIds())
+            RunPactl($"set-sink-input-volume {id} {volume}%");
+    }
+
+    private static void ApplyLweMute(bool mute)
+    {
+        foreach (var id in GetLweSinkInputIds())
+            RunPactl($"set-sink-input-mute {id} {(mute ? 1 : 0)}");
+    }
+
+    private static void RunPactl(string args)
+    {
+        try
+        {
+            var psi = new ProcessStartInfo("pactl")
+            {
+                Arguments = args,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            using var proc = Process.Start(psi);
+            proc?.WaitForExit();
+        }
+        catch { }
+    }
+
+    private static int? ReadVolumeOverride(string path)
+    {
+        var sidecar = Path.ChangeExtension(path, ".volume");
+        if (!File.Exists(sidecar)) return null;
+        try { return int.TryParse(File.ReadAllText(sidecar).Trim(), out int v) ? v : null; }
+        catch { return null; }
     }
 }
