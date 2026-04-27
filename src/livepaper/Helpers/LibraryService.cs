@@ -40,6 +40,28 @@ public static class LibraryService
         try { File.WriteAllText(Path.ChangeExtension(videoPath, ".crashed"), ""); } catch { }
     }
 
+    public static void SaveVolumeOverride(string videoPath, int? volume)
+    {
+        var path = Path.ChangeExtension(videoPath, ".volume");
+        try
+        {
+            if (volume.HasValue) File.WriteAllText(path, volume.Value.ToString());
+            else if (File.Exists(path)) File.Delete(path);
+        }
+        catch { }
+    }
+
+    public static void SaveSpeedOverride(string videoPath, double? speed)
+    {
+        var path = Path.ChangeExtension(videoPath, ".speed");
+        try
+        {
+            if (speed.HasValue) File.WriteAllText(path, speed.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            else if (File.Exists(path)) File.Delete(path);
+        }
+        catch { }
+    }
+
     public static void SetWhitelisted(string videoPath, bool whitelisted)
     {
         var path = Path.ChangeExtension(videoPath, ".whitelist");
@@ -160,6 +182,22 @@ public static class LibraryService
             }
         }
         return null;
+    }
+
+    private static int? ReadVolumeOverride(string mediaPath)
+    {
+        var path = Path.ChangeExtension(mediaPath, ".volume");
+        if (!File.Exists(path)) return null;
+        try { return int.TryParse(File.ReadAllText(path).Trim(), out int v) ? v : null; }
+        catch { return null; }
+    }
+
+    private static double? ReadSpeedOverride(string mediaPath)
+    {
+        var path = Path.ChangeExtension(mediaPath, ".speed");
+        if (!File.Exists(path)) return null;
+        try { return double.TryParse(File.ReadAllText(path).Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double v) ? v : null; }
+        catch { return null; }
     }
 
     private static bool IsSymlink(string path)
