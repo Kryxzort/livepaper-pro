@@ -19,6 +19,9 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     public string[] HwDecOptions { get; } = ["auto", "nvdec", "vaapi", "no"];
     public string[] VideoScaleOptions { get; } = ["fit", "fill"];
+    public string[] ThumbnailAspectOptions { get; } = ["Default", "16:9", "1:1"];
+    public string[] CardSizeOptions { get; } = ["Small", "Medium", "Large"];
+    public Action? CardLayoutChanged { get; set; }
 
     public List<IBgsProvider> Sources { get; } =
     [
@@ -150,6 +153,10 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private int _demuxerMaxBackBytes;
     [ObservableProperty] private string _hwDec = "";
     [ObservableProperty] private string _videoScale = "fit";
+    [ObservableProperty] private double _cardThumbnailHeight = 150;
+    [ObservableProperty] private double _cardMinWidth = 210;
+    [ObservableProperty] private string _thumbnailAspect = "Default";
+    [ObservableProperty] private string _cardSize = "Medium";
     [ObservableProperty] private int _volume;
     [ObservableProperty] private double _speed;
     [ObservableProperty] private string _mpvOptionsPreview = "";
@@ -696,6 +703,8 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnDemuxerMaxBackBytesChanged(int value) => SaveAndRebuild();
     partial void OnHwDecChanged(string value) => SaveAndRebuild();
     partial void OnVideoScaleChanged(string value) { Task.Run(() => PlayerHelper.SetVideoScale(value)); SaveAndRebuild(); }
+    partial void OnThumbnailAspectChanged(string value) { CardLayoutChanged?.Invoke(); }
+    partial void OnCardSizeChanged(string value) { CardLayoutChanged?.Invoke(); }
     partial void OnVolumeChanged(int value)
     {
         if (LibraryWallpapers.FirstOrDefault(c => c.IsCurrentlyPlaying)?.VolumeOverride == null)
