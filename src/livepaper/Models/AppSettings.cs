@@ -43,6 +43,7 @@ public class AppSettings
     public int LibrarySortIndex { get; set; } = 5;
     public int GlobalIntervalSeconds { get; set; } = 1800;
     public bool GlobalAdvanceOnVideoEnd { get; set; } = true;
+    public bool PlaylistWaitForVideoEnd { get; set; } = false;
     public LastSession? LastSession { get; set; }
 
     public string BuildMpvOptions()

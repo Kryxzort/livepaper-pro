@@ -183,6 +183,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private decimal _intervalSeconds = 0;
     [ObservableProperty] private bool _advanceOnVideoEnd = true;
     [ObservableProperty] private bool _overrideGlobalSettings;
+    [ObservableProperty] private bool _playlistWaitForVideoEnd;
 
     // Global rotation settings (Settings tab)
     [ObservableProperty] private decimal _globalIntervalHours;
@@ -466,6 +467,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     partial void OnPlaylistShuffleChanged(bool value) { SavePlaylistStateDebounced(); ApplyTimedSettingsIfRunning(); }
+    partial void OnPlaylistWaitForVideoEndChanged(bool value) { _settings.PlaylistWaitForVideoEnd = value; SettingsService.Save(_settings); ApplyTimedSettingsIfRunning(); }
     partial void OnIntervalHoursChanged(decimal value) { SavePlaylistStateDebounced(); if (OverrideGlobalSettings) { ApplyTimedSettingsIfRunning(); OnPropertyChanged(nameof(DisplayIntervalHours)); } }
     partial void OnIntervalMinutesChanged(decimal value) { SavePlaylistStateDebounced(); if (OverrideGlobalSettings) { ApplyTimedSettingsIfRunning(); OnPropertyChanged(nameof(DisplayIntervalMinutes)); } }
     partial void OnIntervalSecondsChanged(decimal value) { SavePlaylistStateDebounced(); if (OverrideGlobalSettings) { ApplyTimedSettingsIfRunning(); OnPropertyChanged(nameof(DisplayIntervalSeconds)); } }
@@ -514,7 +516,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (_settings.LastSession?.IsTimedPlaylist != true || !PlayerHelper.IsPlaying) return;
         int secs = GetEffectiveIntervalSeconds();
-        if (secs > 0) PlayerHelper.UpdateTimedSettings(PlaylistShuffle, secs);
+        if (secs > 0) PlayerHelper.UpdateTimedSettings(PlaylistShuffle, secs, _settings.PlaylistWaitForVideoEnd);
     }
 
     // ── Library filter / sort ─────────────────────────────────────────────
@@ -634,6 +636,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _globalIntervalMinutes = (gSecs % 3600) / 60;
         _globalIntervalSeconds = gSecs % 60;
         _globalAdvanceOnVideoEnd = _settings.GlobalAdvanceOnVideoEnd;
+        _playlistWaitForVideoEnd = _settings.PlaylistWaitForVideoEnd;
         _wallpaperEnginePath = _settings.WallpaperEnginePath;
         _weCopyFiles = _settings.WeCopyFiles;
         _resumeFromLast = _settings.ResumeFromLast;
@@ -915,7 +918,7 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
         var playPaths = PlaylistShuffle ? paths.OrderBy(_ => Guid.NewGuid()).ToList() : paths;
-        PlayerHelper.ApplyTimedPlaylist(playPaths, _settings.BuildMpvOptions(), PlaylistShuffle, intervalSecs);
+        PlayerHelper.ApplyTimedPlaylist(playPaths, _settings.BuildMpvOptions(), PlaylistShuffle, intervalSecs, _settings.PlaylistWaitForVideoEnd);
         _settings.LastSession = new LastSession
         {
             IsTimedPlaylist = true,
@@ -964,7 +967,7 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        PlayerHelper.ApplyTimedPlaylist(paths, _settings.BuildMpvOptions(), PlaylistShuffle, intervalSecs);
+        PlayerHelper.ApplyTimedPlaylist(paths, _settings.BuildMpvOptions(), PlaylistShuffle, intervalSecs, _settings.PlaylistWaitForVideoEnd);
         _settings.LastSession = new LastSession
         {
             IsTimedPlaylist = true,
@@ -1531,7 +1534,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 return;
             }
             var playPaths = ShuffleLibrary ? paths.OrderBy(_ => Guid.NewGuid()).ToList() : paths;
-            PlayerHelper.ApplyTimedPlaylist(playPaths, _settings.BuildMpvOptions(), ShuffleLibrary, intervalSecs);
+            PlayerHelper.ApplyTimedPlaylist(playPaths, _settings.BuildMpvOptions(), ShuffleLibrary, intervalSecs, _settings.PlaylistWaitForVideoEnd);
             _settings.LastSession = new LastSession
             {
                 IsTimedPlaylist = true,
