@@ -43,6 +43,7 @@ public class AppSettings
     public int LibrarySortIndex { get; set; } = 5;
     public int GlobalIntervalSeconds { get; set; } = 1800;
     public bool GlobalAdvanceOnVideoEnd { get; set; } = true;
+    public bool GlobalWaitForVideoEnd { get; set; } = false;
     public bool PlaylistWaitForVideoEnd { get; set; } = false;
     public string Theme { get; set; } = "Catppuccin Mocha";
     public LastSession? LastSession { get; set; }

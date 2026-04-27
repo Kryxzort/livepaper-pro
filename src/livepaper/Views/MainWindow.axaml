@@ -496,7 +496,7 @@
                                     </StackPanel>
 
                                     <CheckBox Content="Wait for video to end before switching"
-                                              IsChecked="{Binding PlaylistWaitForVideoEnd}"
+                                              IsChecked="{Binding DisplayWaitForVideoEnd}"
                                               Foreground="{DynamicResource TextColor}"/>
 
                                     <Button Content="Close"
@@ -576,6 +576,9 @@
                                 <StackPanel Spacing="12">
                                     <CheckBox Content="Switch when video ends"
                                               IsChecked="{Binding GlobalAdvanceOnVideoEnd}"
+                                              Foreground="{DynamicResource TextColor}"/>
+                                    <CheckBox Content="Wait for video to end before switching"
+                                              IsChecked="{Binding GlobalWaitForVideoEnd}"
                                               Foreground="{DynamicResource TextColor}"/>
                                     <StackPanel Spacing="6"
                                                 IsEnabled="{Binding !GlobalAdvanceOnVideoEnd}">
@@ -885,7 +888,7 @@
                                     <ComboBox Grid.Row="2" Grid.Column="1"
                                               ItemsSource="{Binding ThumbnailAspectOptions}"
                                               SelectedItem="{Binding ThumbnailAspect}"
-                                              Width="130"/>
+                                              Width="130" HorizontalAlignment="Right"/>
                                     <TextBlock Grid.Row="4" Grid.Column="0"
                                                Text="Card size"
                                                VerticalAlignment="Center"
@@ -893,7 +896,7 @@
                                     <ComboBox Grid.Row="4" Grid.Column="1"
                                               ItemsSource="{Binding CardSizeOptions}"
                                               SelectedItem="{Binding CardSize}"
-                                              Width="130"/>
+                                              Width="130" HorizontalAlignment="Right"/>
                                 </Grid>
                             </Border>
 
