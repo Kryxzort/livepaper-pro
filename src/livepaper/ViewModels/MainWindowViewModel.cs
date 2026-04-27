@@ -1571,6 +1571,7 @@ public partial class MainWindowViewModel : ViewModelBase
         card.UpdateGlobalVolume(Volume);
         card.OnSpeedChanged = (c, v) => SyncSelectedSpeed(c, v);
         card.UpdateGlobalSpeed(Speed);
+        card.LoadDurationAsync();
         return card;
     }
 

@@ -1321,11 +1321,16 @@
                     </Border>
 
                     <Grid Grid.Row="4" ColumnDefinitions="*,Auto,Auto" Margin="0,12,0,0">
-                        <TextBlock Grid.Column="0"
-                                   Text="{Binding PreviewCard.Title}"
-                                   VerticalAlignment="Center"
-                                   Foreground="{StaticResource TextColor}"
-                                   FontSize="13" TextTrimming="CharacterEllipsis"/>
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding PreviewCard.Title}"
+                                       Foreground="{StaticResource TextColor}"
+                                       FontSize="13" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding PreviewCard.VideoDuration}"
+                                       IsVisible="{Binding PreviewCard.VideoDuration, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                       Foreground="{StaticResource Subtext}"
+                                       FontSize="11"
+                                       Margin="0,2,0,0"/>
+                        </StackPanel>
                         <Button Grid.Column="1"
                                 Content="Download &amp; Apply"
                                 Classes="accent"
