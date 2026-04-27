@@ -10,5 +10,7 @@ public class LibraryItem
     public string? WorkshopId { get; init; }
     public bool HasCrashed { get; init; }
     public bool IsWhitelisted { get; init; }
+    public int? VolumeOverride { get; init; }
+    public double? SpeedOverride { get; init; }
     public System.DateTime AddedAt { get; init; }
 }
