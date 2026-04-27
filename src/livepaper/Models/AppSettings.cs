@@ -28,6 +28,7 @@ public class AppSettings
     public double AutoMuteThresholdDb { get; set; } = -70.0;
     public int GlobalIntervalSeconds { get; set; } = 1800;
     public bool GlobalAdvanceOnVideoEnd { get; set; } = true;
+    public string Theme { get; set; } = "Catppuccin Mocha";
     public LastSession? LastSession { get; set; }
 
     public string BuildMpvOptions()

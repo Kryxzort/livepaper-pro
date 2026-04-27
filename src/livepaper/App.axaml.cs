@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using livepaper.Helpers;
+using livepaper.Models;
 using livepaper.ViewModels;
 using livepaper.Views;
 
@@ -12,6 +13,8 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        var settings = SettingsService.Load();
+        ThemeService.Apply(ThemeService.Find(settings.Theme) ?? ThemeService.Default);
     }
 
     public override void OnFrameworkInitializationCompleted()

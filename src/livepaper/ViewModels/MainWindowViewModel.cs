@@ -18,6 +18,9 @@ namespace livepaper.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     public string[] HwDecOptions { get; } = ["auto", "nvdec", "vaapi", "no"];
+    public IReadOnlyList<AppTheme> Themes { get; } = ThemeService.All;
+
+    [ObservableProperty] private AppTheme _selectedTheme = ThemeService.Default;
 
     public List<IBgsProvider> Sources { get; } =
     [
@@ -375,6 +378,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _demuxerMaxBytes = _settings.DemuxerMaxBytes;
         _demuxerMaxBackBytes = _settings.DemuxerMaxBackBytes;
         _hwDec = _settings.HwDec;
+        _selectedTheme = ThemeService.Find(_settings.Theme) ?? ThemeService.Default;
         _volume = _settings.Volume;
         _autoMute = _settings.AutoMute;
         _autoMuteDelayMs = _settings.AutoMuteDelayMs;
@@ -445,6 +449,12 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnDemuxerMaxBytesChanged(int value) => SaveAndRebuild();
     partial void OnDemuxerMaxBackBytesChanged(int value) => SaveAndRebuild();
     partial void OnHwDecChanged(string value) => SaveAndRebuild();
+    partial void OnSelectedThemeChanged(AppTheme value)
+    {
+        ThemeService.Apply(value);
+        _settings.Theme = value.Name;
+        SettingsService.Save(_settings);
+    }
     partial void OnVolumeChanged(int value)
     {
         Task.Run(() => PlayerHelper.SetVolume(value));
