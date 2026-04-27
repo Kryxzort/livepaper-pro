@@ -11,6 +11,7 @@ public class AppSettings
     public int DemuxerMaxBytes { get; set; } = 20;
     public int DemuxerMaxBackBytes { get; set; } = 5;
     public string HwDec { get; set; } = "auto";
+    public string VideoScale { get; set; } = "fit";
     private int _volume = 100;
     public int Volume
     {
@@ -52,6 +53,7 @@ public class AppSettings
         if (DemuxerMaxBytes > 0) parts.Add($"--demuxer-max-bytes={DemuxerMaxBytes}MiB");
         if (DemuxerMaxBackBytes > 0) parts.Add($"--demuxer-max-back-bytes={DemuxerMaxBackBytes}MiB");
         if (!string.IsNullOrWhiteSpace(HwDec)) parts.Add($"--hwdec={HwDec}");
+        if (VideoScale == "fill") parts.Add("--panscan=1.0");
         return string.Join(" ", parts);
     }
 
@@ -66,6 +68,7 @@ public class AppSettings
         if (DemuxerMaxBytes > 0) parts.Add($"--demuxer-max-bytes={DemuxerMaxBytes}MiB");
         if (DemuxerMaxBackBytes > 0) parts.Add($"--demuxer-max-back-bytes={DemuxerMaxBackBytes}MiB");
         if (!string.IsNullOrWhiteSpace(HwDec)) parts.Add($"--hwdec={HwDec}");
+        if (VideoScale == "fill") parts.Add("--panscan=1.0");
         return string.Join(" ", parts);
     }
 
