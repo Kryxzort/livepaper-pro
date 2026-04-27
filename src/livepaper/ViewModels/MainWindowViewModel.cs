@@ -573,6 +573,16 @@ public partial class MainWindowViewModel : ViewModelBase
         PlayerHelper.OnTimedPlaylistStopped = () =>
             Dispatcher.UIThread.Post(() => StatusMessage = "");
 
+        PlayerHelper.OnWallpaperChanged = path => Dispatcher.UIThread.Post(() =>
+        {
+            foreach (var c in LibraryWallpapers) c.IsCurrentlyPlaying = false;
+            if (path != null)
+            {
+                var playing = LibraryWallpapers.FirstOrDefault(c => c.LibraryItem?.VideoPath == path);
+                if (playing != null) playing.IsCurrentlyPlaying = true;
+            }
+        });
+
         PlayerHelper.OnSceneCrashed = path => Dispatcher.UIThread.Post(() =>
         {
             var card = LibraryWallpapers.FirstOrDefault(c => c.LibraryItem?.VideoPath == path);
