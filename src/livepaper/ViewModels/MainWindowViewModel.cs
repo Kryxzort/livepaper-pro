@@ -480,16 +480,17 @@ public partial class MainWindowViewModel : ViewModelBase
         if (secs > 0) PlayerHelper.UpdateTimedSettings(PlaylistShuffle, secs);
     }
 
-    // ── Library filter ────────────────────────────────────────────────────
+    // ── Library filter / sort ─────────────────────────────────────────────
 
     [ObservableProperty] private string _librarySearchQuery = "";
+    [ObservableProperty] private int _librarySortIndex = 5;
     [ObservableProperty] private List<WallpaperCardViewModel> _filteredLibraryWallpapers = [];
     private string _activeSearchQuery = "";
     private CancellationTokenSource? _searchDebounceCts;
 
     private void UpdateFilteredLibrary()
     {
-        FilteredLibraryWallpapers = ApplyLibraryFilter(LibraryWallpapers, _activeSearchQuery, 5).ToList();
+        FilteredLibraryWallpapers = ApplyLibraryFilter(LibraryWallpapers, _activeSearchQuery, LibrarySortIndex).ToList();
     }
 
     partial void OnLibrarySearchQueryChanged(string value)
@@ -508,6 +509,19 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             catch (OperationCanceledException) { }
         });
+    }
+
+    partial void OnLibrarySortIndexChanged(int value)
+    {
+        UpdateFilteredLibrary();
+        _settings.LibrarySortIndex = value;
+        SettingsService.Save(_settings);
+    }
+
+    [RelayCommand]
+    private void SetLibrarySort(string index)
+    {
+        if (int.TryParse(index, out int i)) LibrarySortIndex = i;
     }
 
     private static IEnumerable<WallpaperCardViewModel> ApplyLibraryFilter(
@@ -569,6 +583,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _demuxerMaxBackBytes = _settings.DemuxerMaxBackBytes;
         _hwDec = _settings.HwDec;
         _videoScale = _settings.VideoScale;
+        _librarySortIndex = _settings.LibrarySortIndex;
         _volume = _settings.Volume;
         _speed = _settings.Speed;
         _autoMute = _settings.AutoMute;
