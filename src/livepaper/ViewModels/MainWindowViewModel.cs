@@ -1361,6 +1361,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _shuffleLibrary;
 
     [RelayCommand]
+    private void Stop() { PlayerHelper.Stop(); StatusMessage = ""; }
+
+    [RelayCommand]
     private void PlayLibrary()
     {
         try
