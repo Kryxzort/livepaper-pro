@@ -590,6 +590,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _demuxerMaxBackBytes = _settings.DemuxerMaxBackBytes;
         _hwDec = _settings.HwDec;
         _videoScale = _settings.VideoScale;
+        _thumbnailAspect = _settings.ThumbnailAspect;
+        _cardSize = _settings.CardSize;
         _librarySortIndex = _settings.LibrarySortIndex;
         _volume = _settings.Volume;
         _speed = _settings.Speed;
@@ -703,8 +705,18 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnDemuxerMaxBackBytesChanged(int value) => SaveAndRebuild();
     partial void OnHwDecChanged(string value) => SaveAndRebuild();
     partial void OnVideoScaleChanged(string value) { Task.Run(() => PlayerHelper.SetVideoScale(value)); SaveAndRebuild(); }
-    partial void OnThumbnailAspectChanged(string value) { CardLayoutChanged?.Invoke(); }
-    partial void OnCardSizeChanged(string value) { CardLayoutChanged?.Invoke(); }
+    partial void OnThumbnailAspectChanged(string value)
+    {
+        CardLayoutChanged?.Invoke();
+        _settings.ThumbnailAspect = value;
+        SettingsService.Save(_settings);
+    }
+    partial void OnCardSizeChanged(string value)
+    {
+        CardLayoutChanged?.Invoke();
+        _settings.CardSize = value;
+        SettingsService.Save(_settings);
+    }
     partial void OnVolumeChanged(int value)
     {
         if (LibraryWallpapers.FirstOrDefault(c => c.IsCurrentlyPlaying)?.VolumeOverride == null)
