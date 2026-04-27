@@ -43,10 +43,10 @@
 
                         <!-- Top bar -->
                         <Border DockPanel.Dock="Top"
-                                Background="{StaticResource BgBase}"
+                                Background="{DynamicResource BgBase}"
                                 Padding="16,12"
                                 BorderThickness="0,0,0,1"
-                                BorderBrush="{StaticResource Surface0}">
+                                BorderBrush="{DynamicResource Surface0}">
                             <DockPanel>
 
                                 <!-- Source pills -->
@@ -103,13 +103,13 @@
                         <!-- Selection toolbar -->
                         <Border DockPanel.Dock="Bottom"
                                 IsVisible="{Binding AnyBrowseSelected}"
-                                Background="{StaticResource BgMantle}"
-                                BorderBrush="{StaticResource Surface0}"
+                                Background="{DynamicResource BgMantle}"
+                                BorderBrush="{DynamicResource Surface0}"
                                 BorderThickness="0,1,0,0"
                                 Padding="16,10">
                             <DockPanel>
                                 <TextBlock VerticalAlignment="Center"
-                                           Foreground="{StaticResource TextColor}"
+                                           Foreground="{DynamicResource TextColor}"
                                            FontSize="13"
                                            Text="{Binding BrowseSelectedCount, StringFormat='{}{0} selected'}"/>
                                 <StackPanel DockPanel.Dock="Right"
@@ -139,7 +139,7 @@
                                     <DataTemplate x:DataType="vm:WallpaperCardViewModel">
                                         <Border Margin="6" CornerRadius="10"
                                                 ClipToBounds="True"
-                                                Background="{StaticResource BgBase}"
+                                                Background="{DynamicResource BgBase}"
                                                 PointerEntered="OnCardPointerEntered"
                                                 PointerExited="OnCardPointerExited">
                                             <Grid RowDefinitions="Auto,*,Auto">
@@ -157,7 +157,7 @@
                                                 <TextBlock Grid.Row="1"
                                                            Text="{Binding Title}"
                                                            TextWrapping="Wrap"
-                                                           Foreground="{StaticResource TextColor}"
+                                                           Foreground="{DynamicResource TextColor}"
                                                            Margin="10,8,10,4"
                                                            FontSize="12"
                                                            MaxLines="2"/>
@@ -198,13 +198,13 @@
 
                             <!-- Header -->
                             <Border DockPanel.Dock="Top"
-                                    Background="{StaticResource BgBase}"
+                                    Background="{DynamicResource BgBase}"
                                     Padding="16,12"
                                     BorderThickness="0,0,0,1"
-                                    BorderBrush="{StaticResource Surface0}">
+                                    BorderBrush="{DynamicResource Surface0}">
                                 <DockPanel>
                                     <TextBlock Text="Your downloaded wallpapers"
-                                               Foreground="{StaticResource Subtext}"
+                                               Foreground="{DynamicResource Subtext}"
                                                FontSize="13"
                                                VerticalAlignment="Center"/>
                                     <StackPanel DockPanel.Dock="Right"
@@ -264,13 +264,13 @@
                             <!-- Selection toolbar (above playlist strip) -->
                             <Border DockPanel.Dock="Bottom"
                                     IsVisible="{Binding AnyLibrarySelected}"
-                                    Background="{StaticResource BgMantle}"
-                                    BorderBrush="{StaticResource Surface0}"
+                                    Background="{DynamicResource BgMantle}"
+                                    BorderBrush="{DynamicResource Surface0}"
                                     BorderThickness="0,1,0,0"
                                     Padding="16,10">
                                 <DockPanel>
                                     <TextBlock VerticalAlignment="Center"
-                                               Foreground="{StaticResource TextColor}"
+                                               Foreground="{DynamicResource TextColor}"
                                                FontSize="13"
                                                Text="{Binding LibrarySelectedCount, StringFormat='{}{0} selected'}"/>
                                     <StackPanel DockPanel.Dock="Right"
@@ -304,7 +304,7 @@
                                         <DataTemplate x:DataType="vm:WallpaperCardViewModel">
                                             <Border Margin="6" CornerRadius="10"
                                                     ClipToBounds="True"
-                                                    Background="{StaticResource BgBase}"
+                                                    Background="{DynamicResource BgBase}"
                                                     PointerEntered="OnCardPointerEntered"
                                                     PointerExited="OnCardPointerExited">
                                                 <Border.ContextMenu>
@@ -332,12 +332,12 @@
                                                                 VerticalAlignment="Top"
                                                                 Margin="5,5,0,0"
                                                                 IsVisible="{Binding IsScene}"
-                                                                Background="{StaticResource Accent}"
+                                                                Background="{DynamicResource Accent}"
                                                                 CornerRadius="4" Padding="4,2"
                                                                 IsHitTestVisible="False">
                                                             <TextBlock Text="SCENE"
                                                                        FontSize="9" FontWeight="Bold"
-                                                                       Foreground="{StaticResource AccentFg}"/>
+                                                                       Foreground="{DynamicResource AccentFg}"/>
                                                         </Border>
 
                                                         <!-- Checkmark badge -->
@@ -347,11 +347,11 @@
                                                                 Width="24" Height="24"
                                                                 CornerRadius="12" Padding="0"
                                                                 BorderThickness="0"
-                                                                Background="{StaticResource BgCrust}"
+                                                                Background="{DynamicResource BgCrust}"
                                                                 Command="{Binding AddToPlaylistCommand}">
                                                             <TextBlock Text="{Binding CheckmarkText}"
                                                                        FontSize="12" FontWeight="Bold"
-                                                                       Foreground="{StaticResource Accent}"
+                                                                       Foreground="{DynamicResource Accent}"
                                                                        HorizontalAlignment="Center"
                                                                        VerticalAlignment="Center"/>
                                                         </Button>
@@ -362,14 +362,14 @@
                                                             <TextBlock Grid.Column="0"
                                                                        Text="⚠ "
                                                                        FontSize="12"
-                                                                       Foreground="{StaticResource Danger}"
+                                                                       Foreground="{DynamicResource Danger}"
                                                                        VerticalAlignment="Top"
                                                                        IsVisible="{Binding HasCrashed}"
                                                                        ToolTip.Tip="This scene crashed during playback"/>
                                                             <TextBlock Grid.Column="1"
                                                                        Text="{Binding Title}"
                                                                        TextWrapping="Wrap"
-                                                                       Foreground="{StaticResource TextColor}"
+                                                                       Foreground="{DynamicResource TextColor}"
                                                                        FontSize="12"
                                                                        MaxLines="2"/>
                                                         </Grid>
@@ -418,27 +418,27 @@
                         <!-- Playlist settings overlay -->
                         <Grid IsVisible="{Binding IsPlaylistSettingsOpen}"
                               Background="#B2000000">
-                            <Border Background="{StaticResource BgBase}" CornerRadius="12" Padding="24"
+                            <Border Background="{DynamicResource BgBase}" CornerRadius="12" Padding="24"
                                     Width="420" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <StackPanel Spacing="16">
                                     <TextBlock Text="Playlist Settings" FontSize="15" FontWeight="SemiBold"
-                                               Foreground="{StaticResource TextColor}"/>
+                                               Foreground="{DynamicResource TextColor}"/>
 
                                     <!-- Order -->
                                     <StackPanel Spacing="8">
                                         <TextBlock Text="ORDER"
                                                    FontSize="11" FontWeight="SemiBold"
-                                                   Foreground="{StaticResource Muted}"
+                                                   Foreground="{DynamicResource Muted}"
                                                    LetterSpacing="2"/>
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <ToggleButton Content="Sequential"
                                                           IsChecked="{Binding IsSequential}">
                                                 <ToggleButton.Styles>
                                                     <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
-                                                        <Setter Property="Background" Value="{StaticResource Accent}"/>
+                                                        <Setter Property="Background" Value="{DynamicResource Accent}"/>
                                                     </Style>
                                                     <Style Selector="ToggleButton:checked">
-                                                        <Setter Property="Foreground" Value="{StaticResource AccentFg}"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource AccentFg}"/>
                                                     </Style>
                                                 </ToggleButton.Styles>
                                             </ToggleButton>
@@ -446,10 +446,10 @@
                                                           IsChecked="{Binding PlaylistShuffle}">
                                                 <ToggleButton.Styles>
                                                     <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
-                                                        <Setter Property="Background" Value="{StaticResource Accent}"/>
+                                                        <Setter Property="Background" Value="{DynamicResource Accent}"/>
                                                     </Style>
                                                     <Style Selector="ToggleButton:checked">
-                                                        <Setter Property="Foreground" Value="{StaticResource AccentFg}"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource AccentFg}"/>
                                                     </Style>
                                                 </ToggleButton.Styles>
                                             </ToggleButton>
@@ -458,36 +458,36 @@
 
                                     <CheckBox Content="Override global rotation settings"
                                               IsChecked="{Binding OverrideGlobalSettings}"
-                                              Foreground="{StaticResource TextColor}"/>
+                                              Foreground="{DynamicResource TextColor}"/>
 
                                     <!-- Interval (per-playlist override) -->
                                     <StackPanel Spacing="8" IsEnabled="{Binding OverrideGlobalSettings}">
                                         <TextBlock Text="SWITCH EVERY"
                                                    FontSize="11" FontWeight="SemiBold"
-                                                   Foreground="{StaticResource Muted}"
+                                                   Foreground="{DynamicResource Muted}"
                                                    LetterSpacing="2"/>
                                         <CheckBox Content="Switch when video ends"
                                                   IsChecked="{Binding DisplayAdvanceOnVideoEnd}"
-                                                  Foreground="{StaticResource TextColor}"/>
+                                                  Foreground="{DynamicResource TextColor}"/>
                                         <StackPanel Orientation="Horizontal" Spacing="12"
                                                     IsEnabled="{Binding !DisplayAdvanceOnVideoEnd}">
                                             <StackPanel Spacing="6">
                                                 <TextBlock Text="Hours" FontSize="12"
-                                                           Foreground="{StaticResource Subtext}"/>
+                                                           Foreground="{DynamicResource Subtext}"/>
                                                 <NumericUpDown Value="{Binding DisplayIntervalHours}"
                                                                Minimum="0" Maximum="99"
                                                                FormatString="0" Width="108"/>
                                             </StackPanel>
                                             <StackPanel Spacing="6">
                                                 <TextBlock Text="Minutes" FontSize="12"
-                                                           Foreground="{StaticResource Subtext}"/>
+                                                           Foreground="{DynamicResource Subtext}"/>
                                                 <NumericUpDown Value="{Binding DisplayIntervalMinutes}"
                                                                Minimum="0" Maximum="59"
                                                                FormatString="0" Width="108"/>
                                             </StackPanel>
                                             <StackPanel Spacing="6">
                                                 <TextBlock Text="Seconds" FontSize="12"
-                                                           Foreground="{StaticResource Subtext}"/>
+                                                           Foreground="{DynamicResource Subtext}"/>
                                                 <NumericUpDown Value="{Binding DisplayIntervalSeconds}"
                                                                Minimum="0" Maximum="59"
                                                                FormatString="0" Width="108"/>
@@ -497,7 +497,7 @@
 
                                     <CheckBox Content="Wait for video to end before switching"
                                               IsChecked="{Binding PlaylistWaitForVideoEnd}"
-                                              Foreground="{StaticResource TextColor}"/>
+                                              Foreground="{DynamicResource TextColor}"/>
 
                                     <Button Content="Close"
                                             Classes="ghost"
@@ -518,21 +518,21 @@
 
                             <TextBlock Text="Playback"
                                        FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Muted}"
+                                       Foreground="{DynamicResource Muted}"
                                        LetterSpacing="2"/>
-                            <Border Background="{StaticResource BgBase}" CornerRadius="10" Padding="16">
+                            <Border Background="{DynamicResource BgBase}" CornerRadius="10" Padding="16">
                                 <StackPanel Spacing="12">
                                     <CheckBox Content="Loop" IsChecked="{Binding Loop}"
-                                              Foreground="{StaticResource TextColor}"/>
+                                              Foreground="{DynamicResource TextColor}"/>
                                     <CheckBox Content="Mute audio" IsChecked="{Binding NoAudio}"
-                                              Foreground="{StaticResource TextColor}"/>
+                                              Foreground="{DynamicResource TextColor}"/>
                                     <CheckBox Content="Disable cache" IsChecked="{Binding DisableCache}"
-                                              Foreground="{StaticResource TextColor}"/>
+                                              Foreground="{DynamicResource TextColor}"/>
                                     <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0"
                                           IsEnabled="{Binding !NoAudio}">
                                         <TextBlock Grid.Column="0" Text="Volume"
                                                    VerticalAlignment="Center"
-                                                   Foreground="{StaticResource TextColor}"
+                                                   Foreground="{DynamicResource TextColor}"
                                                    Width="80"/>
                                         <Slider Grid.Column="1"
                                                 Minimum="0" Maximum="100"
@@ -543,14 +543,14 @@
                                         <TextBlock Grid.Column="2"
                                                    Text="{Binding Volume}"
                                                    VerticalAlignment="Center"
-                                                   Foreground="{StaticResource Subtext}"
+                                                   Foreground="{DynamicResource Subtext}"
                                                    Width="30" TextAlignment="Right"
                                                    Margin="8,0,0,0"/>
                                     </Grid>
                                     <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0">
                                         <TextBlock Grid.Column="0" Text="Speed"
                                                    VerticalAlignment="Center"
-                                                   Foreground="{StaticResource TextColor}"
+                                                   Foreground="{DynamicResource TextColor}"
                                                    Width="80"/>
                                         <Slider Grid.Column="1"
                                                 Minimum="0.1" Maximum="4"
@@ -561,7 +561,7 @@
                                         <TextBlock Grid.Column="2"
                                                    Text="{Binding Speed, StringFormat='{}{0:F1}x'}"
                                                    VerticalAlignment="Center"
-                                                   Foreground="{StaticResource Subtext}"
+                                                   Foreground="{DynamicResource Subtext}"
                                                    Width="36" TextAlignment="Right"
                                                    Margin="8,0,0,0"/>
                                     </Grid>
@@ -570,37 +570,37 @@
 
                             <TextBlock Text="PLAYLIST"
                                        FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Muted}"
+                                       Foreground="{DynamicResource Muted}"
                                        LetterSpacing="2"/>
-                            <Border Background="{StaticResource BgBase}" CornerRadius="10" Padding="16">
+                            <Border Background="{DynamicResource BgBase}" CornerRadius="10" Padding="16">
                                 <StackPanel Spacing="12">
                                     <CheckBox Content="Switch when video ends"
                                               IsChecked="{Binding GlobalAdvanceOnVideoEnd}"
-                                              Foreground="{StaticResource TextColor}"/>
+                                              Foreground="{DynamicResource TextColor}"/>
                                     <StackPanel Spacing="6"
                                                 IsEnabled="{Binding !GlobalAdvanceOnVideoEnd}">
                                         <TextBlock Text="SWITCH EVERY"
                                                    FontSize="11" FontWeight="SemiBold"
-                                                   Foreground="{StaticResource Muted}"
+                                                   Foreground="{DynamicResource Muted}"
                                                    LetterSpacing="2"/>
                                         <StackPanel Orientation="Horizontal" Spacing="12">
                                             <StackPanel Spacing="6">
                                                 <TextBlock Text="Hours" FontSize="12"
-                                                           Foreground="{StaticResource Subtext}"/>
+                                                           Foreground="{DynamicResource Subtext}"/>
                                                 <NumericUpDown Value="{Binding GlobalIntervalHours}"
                                                                Minimum="0" Maximum="99"
                                                                FormatString="0" Width="108"/>
                                             </StackPanel>
                                             <StackPanel Spacing="6">
                                                 <TextBlock Text="Minutes" FontSize="12"
-                                                           Foreground="{StaticResource Subtext}"/>
+                                                           Foreground="{DynamicResource Subtext}"/>
                                                 <NumericUpDown Value="{Binding GlobalIntervalMinutes}"
                                                                Minimum="0" Maximum="59"
                                                                FormatString="0" Width="108"/>
                                             </StackPanel>
                                             <StackPanel Spacing="6">
                                                 <TextBlock Text="Seconds" FontSize="12"
-                                                           Foreground="{StaticResource Subtext}"/>
+                                                           Foreground="{DynamicResource Subtext}"/>
                                                 <NumericUpDown Value="{Binding GlobalIntervalSeconds}"
                                                                Minimum="0" Maximum="59"
                                                                FormatString="0" Width="108"/>
@@ -612,19 +612,19 @@
 
                             <TextBlock Text="AUTO-MUTE"
                                        FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Muted}"
+                                       Foreground="{DynamicResource Muted}"
                                        LetterSpacing="2"/>
-                            <Border Background="{StaticResource BgBase}" CornerRadius="10" Padding="16">
+                            <Border Background="{DynamicResource BgBase}" CornerRadius="10" Padding="16">
                                 <StackPanel Spacing="12">
                                     <CheckBox Content="Mute when system audio plays"
                                               IsChecked="{Binding AutoMute}"
-                                              Foreground="{StaticResource TextColor}"/>
+                                              Foreground="{DynamicResource TextColor}"/>
                                     <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,12,Auto,12,Auto"
                                           IsEnabled="{Binding AutoMute}">
                                         <TextBlock Grid.Row="0" Grid.Column="0"
                                                    Text="Mute after"
                                                    VerticalAlignment="Center"
-                                                   Foreground="{StaticResource TextColor}"
+                                                   Foreground="{DynamicResource TextColor}"
                                                    Margin="0,0,16,0"/>
                                         <NumericUpDown Grid.Row="0" Grid.Column="1"
                                                        Value="{Binding AutoMuteDelayMs}"
@@ -632,12 +632,12 @@
                                                        FormatString="0"/>
                                         <TextBlock Grid.Row="0" Grid.Column="2"
                                                    Text="ms" VerticalAlignment="Center"
-                                                   Foreground="{StaticResource Subtext}"
+                                                   Foreground="{DynamicResource Subtext}"
                                                    Margin="8,0,0,0"/>
                                         <TextBlock Grid.Row="2" Grid.Column="0"
                                                    Text="Unmute after"
                                                    VerticalAlignment="Center"
-                                                   Foreground="{StaticResource TextColor}"
+                                                   Foreground="{DynamicResource TextColor}"
                                                    Margin="0,0,16,0"/>
                                         <NumericUpDown Grid.Row="2" Grid.Column="1"
                                                        Value="{Binding AutoUnmuteDelayMs}"
@@ -645,12 +645,12 @@
                                                        FormatString="0"/>
                                         <TextBlock Grid.Row="2" Grid.Column="2"
                                                    Text="ms" VerticalAlignment="Center"
-                                                   Foreground="{StaticResource Subtext}"
+                                                   Foreground="{DynamicResource Subtext}"
                                                    Margin="8,0,0,0"/>
                                         <TextBlock Grid.Row="4" Grid.Column="0"
                                                    Text="Minimum level"
                                                    VerticalAlignment="Center"
-                                                   Foreground="{StaticResource TextColor}"
+                                                   Foreground="{DynamicResource TextColor}"
                                                    Margin="0,0,16,0"/>
                                         <NumericUpDown Grid.Row="4" Grid.Column="1"
                                                        Value="{Binding AutoMuteThresholdDb}"
@@ -658,7 +658,7 @@
                                                        FormatString="0"/>
                                         <TextBlock Grid.Row="4" Grid.Column="2"
                                                    Text="dB" VerticalAlignment="Center"
-                                                   Foreground="{StaticResource Subtext}"
+                                                   Foreground="{DynamicResource Subtext}"
                                                    Margin="8,0,0,0"/>
                                     </Grid>
                                 </StackPanel>
@@ -666,14 +666,14 @@
 
                             <TextBlock Text="MEMORY"
                                        FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Muted}"
+                                       Foreground="{DynamicResource Muted}"
                                        LetterSpacing="2"/>
-                            <Border Background="{StaticResource BgBase}" CornerRadius="10" Padding="16">
+                            <Border Background="{DynamicResource BgBase}" CornerRadius="10" Padding="16">
                                 <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,12,Auto">
                                     <TextBlock Grid.Row="0" Grid.Column="0"
                                                Text="Demuxer max bytes"
                                                VerticalAlignment="Center"
-                                               Foreground="{StaticResource TextColor}"
+                                               Foreground="{DynamicResource TextColor}"
                                                Margin="0,0,16,0"/>
                                     <NumericUpDown Grid.Row="0" Grid.Column="1"
                                                    Value="{Binding DemuxerMaxBytes}"
@@ -681,13 +681,13 @@
                                                    FormatString="0"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2"
                                                Text="MiB" VerticalAlignment="Center"
-                                               Foreground="{StaticResource Subtext}"
+                                               Foreground="{DynamicResource Subtext}"
                                                Margin="8,0,0,0"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="0"
                                                Text="Demuxer max back bytes"
                                                VerticalAlignment="Center"
-                                               Foreground="{StaticResource TextColor}"
+                                               Foreground="{DynamicResource TextColor}"
                                                Margin="0,0,16,0"/>
                                     <NumericUpDown Grid.Row="2" Grid.Column="1"
                                                    Value="{Binding DemuxerMaxBackBytes}"
@@ -695,21 +695,21 @@
                                                    FormatString="0"/>
                                     <TextBlock Grid.Row="2" Grid.Column="2"
                                                Text="MiB" VerticalAlignment="Center"
-                                               Foreground="{StaticResource Subtext}"
+                                               Foreground="{DynamicResource Subtext}"
                                                Margin="8,0,0,0"/>
                                 </Grid>
                             </Border>
 
                             <TextBlock Text="RENDERING"
                                        FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Muted}"
+                                       Foreground="{DynamicResource Muted}"
                                        LetterSpacing="2"/>
-                            <Border Background="{StaticResource BgBase}" CornerRadius="10" Padding="16">
+                            <Border Background="{DynamicResource BgBase}" CornerRadius="10" Padding="16">
                                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,12,Auto">
                                     <TextBlock Grid.Row="0" Grid.Column="0"
                                                Text="Hardware decoding"
                                                VerticalAlignment="Center"
-                                               Foreground="{StaticResource TextColor}"/>
+                                               Foreground="{DynamicResource TextColor}"/>
                                     <ComboBox Grid.Row="0" Grid.Column="1"
                                               ItemsSource="{Binding HwDecOptions}"
                                               SelectedItem="{Binding HwDec}"
@@ -717,7 +717,7 @@
                                     <TextBlock Grid.Row="2" Grid.Column="0"
                                                Text="Video scale"
                                                VerticalAlignment="Center"
-                                               Foreground="{StaticResource TextColor}"/>
+                                               Foreground="{DynamicResource TextColor}"/>
                                     <ComboBox Grid.Row="2" Grid.Column="1"
                                               ItemsSource="{Binding VideoScaleOptions}"
                                               SelectedItem="{Binding VideoScale}"
@@ -727,28 +727,28 @@
 
                             <TextBlock Text="BEHAVIOR"
                                        FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Muted}"
+                                       Foreground="{DynamicResource Muted}"
                                        LetterSpacing="2"/>
-                            <Border Background="{StaticResource BgBase}" CornerRadius="10" Padding="16">
+                            <Border Background="{DynamicResource BgBase}" CornerRadius="10" Padding="16">
                                 <CheckBox Content="Resume from last wallpaper"
                                           IsChecked="{Binding ResumeFromLast}"
-                                          Foreground="{StaticResource TextColor}"/>
+                                          Foreground="{DynamicResource TextColor}"/>
                             </Border>
 
                             <TextBlock Text="SOURCES"
                                        FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Muted}"
+                                       Foreground="{DynamicResource Muted}"
                                        LetterSpacing="2"/>
-                            <Border Background="{StaticResource BgBase}" CornerRadius="10" Padding="16">
+                            <Border Background="{DynamicResource BgBase}" CornerRadius="10" Padding="16">
                                 <StackPanel Spacing="8">
                                     <TextBlock Text="Wallpaper Engine workshop folder"
-                                               Foreground="{StaticResource TextColor}"/>
+                                               Foreground="{DynamicResource TextColor}"/>
                                     <Grid ColumnDefinitions="*,Auto" >
                                         <TextBlock Grid.Column="0"
                                                    Text="{Binding WallpaperEnginePath}"
                                                    TextTrimming="CharacterEllipsis"
                                                    VerticalAlignment="Center"
-                                                   Foreground="{StaticResource Subtext}"
+                                                   Foreground="{DynamicResource Subtext}"
                                                    ToolTip.Tip="{Binding WallpaperEnginePath}"
                                                    Margin="0,0,8,0"/>
                                         <Button Grid.Column="1"
@@ -758,22 +758,22 @@
                                     </Grid>
                                     <CheckBox Content="Copy files instead of symlinking"
                                               IsChecked="{Binding WeCopyFiles}"
-                                              Foreground="{StaticResource TextColor}"/>
+                                              Foreground="{DynamicResource TextColor}"/>
                                     <CheckBox Content="Allow scene support (experimental)"
                                               IsChecked="{Binding AllowScenes}"
-                                              Foreground="{StaticResource TextColor}"/>
+                                              Foreground="{DynamicResource TextColor}"/>
 
                                     <!-- Monitor settings (only when scenes enabled) -->
                                     <StackPanel IsVisible="{Binding AllowScenes}" Spacing="8" Margin="0,4,0,0">
                                         <TextBlock Text="Monitors"
-                                                   Foreground="{StaticResource Subtext}"
+                                                   Foreground="{DynamicResource Subtext}"
                                                    FontSize="12"/>
-                                        <Border Background="{StaticResource BgCrust}"
+                                        <Border Background="{DynamicResource BgCrust}"
                                                 CornerRadius="8" Padding="10,8">
                                             <TextBlock TextWrapping="Wrap"
                                                        FontSize="11"
-                                                       Foreground="{StaticResource Subtext}">
-                                                Input the names of the monitors you want scenes to be played on. On Hyprland, run <Run FontFamily="Monospace" Foreground="{StaticResource Accent}">hyprctl monitors</Run> to list your monitors and their names. Find the equivalent command for your compositor.
+                                                       Foreground="{DynamicResource Subtext}">
+                                                Input the names of the monitors you want scenes to be played on. On Hyprland, run <Run FontFamily="Monospace" Foreground="{DynamicResource Accent}">hyprctl monitors</Run> to list your monitors and their names. Find the equivalent command for your compositor.
                                             </TextBlock>
                                         </Border>
 
@@ -786,7 +786,7 @@
                                                 <ComboBox.ItemTemplate>
                                                     <DataTemplate>
                                                         <TextBlock Text="{Binding DisplayName}"
-                                                                   Foreground="{StaticResource TextColor}"/>
+                                                                   Foreground="{DynamicResource TextColor}"/>
                                                     </DataTemplate>
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
@@ -810,7 +810,7 @@
                                             <TextBox Grid.Column="0"
                                                      Text="{Binding NewMonitorName}"
                                                      PlaceholderText="e.g. DP-1"
-                                                     Foreground="{StaticResource TextColor}"/>
+                                                     Foreground="{DynamicResource TextColor}"/>
                                             <Button Grid.Column="1"
                                                     Content="Add"
                                                     Classes="accent"
@@ -831,25 +831,25 @@
                                                 <TextBlock Grid.Column="0"
                                                            Text="FPS"
                                                            VerticalAlignment="Center"
-                                                           Foreground="{StaticResource TextColor}"
+                                                           Foreground="{DynamicResource TextColor}"
                                                            Margin="0,0,12,0"/>
                                                 <NumericUpDown Grid.Column="1"
                                                               Value="{Binding SelectedMonitorFps}"
                                                               Minimum="1"
                                                               Increment="1"
                                                               FormatString="0"
-                                                              Foreground="{StaticResource TextColor}"/>
+                                                              Foreground="{DynamicResource TextColor}"/>
                                             </Grid>
                                             <CheckBox Content="Primary (better audio sync)"
                                                       IsChecked="{Binding SelectedMonitorIsPrimary}"
-                                                      Foreground="{StaticResource TextColor}"/>
+                                                      Foreground="{DynamicResource TextColor}"/>
                                         </StackPanel>
 
                                         <Grid ColumnDefinitions="*,Auto"
                                               ToolTip.Tip="How long to wait after launching a scene before killing the previous wallpaper">
                                             <TextBlock Grid.Column="0" Text="Transition delay (ms)"
                                                        VerticalAlignment="Center"
-                                                       Foreground="{StaticResource TextColor}"/>
+                                                       Foreground="{DynamicResource TextColor}"/>
                                             <NumericUpDown Grid.Column="1" Value="{Binding SceneTransitionDelayMs}"
                                                            Minimum="0" Maximum="5000" Increment="50"
                                                            Width="120" FormatString="0"/>
@@ -860,23 +860,37 @@
 
                             <TextBlock Text="APPEARANCE"
                                        FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Muted}"
+                                       Foreground="{DynamicResource Muted}"
                                        LetterSpacing="2"/>
-                            <Border Background="{StaticResource BgBase}" CornerRadius="10" Padding="16">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,12,Auto">
+                            <Border Background="{DynamicResource BgBase}" CornerRadius="10" Padding="16">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,12,Auto,12,Auto">
                                     <TextBlock Grid.Row="0" Grid.Column="0"
+                                               Text="Theme"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextColor}"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="1"
+                                              ItemsSource="{Binding Themes}"
+                                              SelectedItem="{Binding SelectedTheme}"
+                                              Width="220">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Name}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <TextBlock Grid.Row="2" Grid.Column="0"
                                                Text="Thumbnail aspect"
                                                VerticalAlignment="Center"
-                                               Foreground="{StaticResource TextColor}"/>
-                                    <ComboBox Grid.Row="0" Grid.Column="1"
+                                               Foreground="{DynamicResource TextColor}"/>
+                                    <ComboBox Grid.Row="2" Grid.Column="1"
                                               ItemsSource="{Binding ThumbnailAspectOptions}"
                                               SelectedItem="{Binding ThumbnailAspect}"
                                               Width="130"/>
-                                    <TextBlock Grid.Row="2" Grid.Column="0"
+                                    <TextBlock Grid.Row="4" Grid.Column="0"
                                                Text="Card size"
                                                VerticalAlignment="Center"
-                                               Foreground="{StaticResource TextColor}"/>
-                                    <ComboBox Grid.Row="2" Grid.Column="1"
+                                               Foreground="{DynamicResource TextColor}"/>
+                                    <ComboBox Grid.Row="4" Grid.Column="1"
                                               ItemsSource="{Binding CardSizeOptions}"
                                               SelectedItem="{Binding CardSize}"
                                               Width="130"/>
@@ -885,123 +899,123 @@
 
                             <TextBlock Text="COMMAND PREVIEW"
                                        FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Muted}"
+                                       Foreground="{DynamicResource Muted}"
                                        LetterSpacing="2"/>
-                            <Border Background="{StaticResource BgCrust}" CornerRadius="10" Padding="14">
+                            <Border Background="{DynamicResource BgCrust}" CornerRadius="10" Padding="14">
                                 <TextBlock Text="{Binding MpvOptionsPreview}"
                                            FontFamily="Monospace"
                                            FontSize="12"
                                            TextWrapping="Wrap"
-                                           Foreground="{StaticResource Accent}"/>
+                                           Foreground="{DynamicResource Accent}"/>
                             </Border>
 
                             <TextBlock Text="KEYBINDS"
                                        FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Muted}"
+                                       Foreground="{DynamicResource Muted}"
                                        LetterSpacing="2"/>
-                            <Border Background="{StaticResource BgCrust}" CornerRadius="10" Padding="14">
+                            <Border Background="{DynamicResource BgCrust}" CornerRadius="10" Padding="14">
                                 <StackPanel Spacing="10">
                                     <TextBlock Text="Bind these commands in your compositor config:"
-                                               Foreground="{StaticResource Subtext}"
+                                               Foreground="{DynamicResource Subtext}"
                                                FontSize="12"/>
                                     <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Toggle mute"
-                                                   Foreground="{StaticResource TextColor}" FontSize="12"
+                                                   Foreground="{DynamicResource TextColor}" FontSize="12"
                                                    VerticalAlignment="Center" Margin="0,0,16,0"/>
                                         <TextBlock Grid.Row="0" Grid.Column="1"
                                                    Text="livepaper --action=toggle-mute"
                                                    FontFamily="Monospace" FontSize="12"
-                                                   Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
                                         <Button Grid.Row="0" Grid.Column="2" Content="Copy" Classes="ghost" FontSize="11" Margin="8,0,0,0"
                                                 Command="{Binding CopyTextCommand}" CommandParameter="livepaper --action=toggle-mute"/>
 
                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Toggle pause"
-                                                   Foreground="{StaticResource TextColor}" FontSize="12"
+                                                   Foreground="{DynamicResource TextColor}" FontSize="12"
                                                    VerticalAlignment="Center" Margin="0,0,16,0"/>
                                         <TextBlock Grid.Row="2" Grid.Column="1"
                                                    Text="livepaper --action=toggle-pause"
                                                    FontFamily="Monospace" FontSize="12"
-                                                   Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
                                         <Button Grid.Row="2" Grid.Column="2" Content="Copy" Classes="ghost" FontSize="11" Margin="8,0,0,0"
                                                 Command="{Binding CopyTextCommand}" CommandParameter="livepaper --action=toggle-pause"/>
 
                                         <TextBlock Grid.Row="4" Grid.Column="0" Text="Stop"
-                                                   Foreground="{StaticResource TextColor}" FontSize="12"
+                                                   Foreground="{DynamicResource TextColor}" FontSize="12"
                                                    VerticalAlignment="Center" Margin="0,0,16,0"/>
                                         <TextBlock Grid.Row="4" Grid.Column="1"
                                                    Text="livepaper --action=stop"
                                                    FontFamily="Monospace" FontSize="12"
-                                                   Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
                                         <Button Grid.Row="4" Grid.Column="2" Content="Copy" Classes="ghost" FontSize="11" Margin="8,0,0,0"
                                                 Command="{Binding CopyTextCommand}" CommandParameter="livepaper --action=stop"/>
 
                                         <TextBlock Grid.Row="6" Grid.Column="0" Text="Play (restore)"
-                                                   Foreground="{StaticResource TextColor}" FontSize="12"
+                                                   Foreground="{DynamicResource TextColor}" FontSize="12"
                                                    VerticalAlignment="Center" Margin="0,0,16,0"/>
                                         <TextBlock Grid.Row="6" Grid.Column="1"
                                                    Text="livepaper --action=play"
                                                    FontFamily="Monospace" FontSize="12"
-                                                   Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
                                         <Button Grid.Row="6" Grid.Column="2" Content="Copy" Classes="ghost" FontSize="11" Margin="8,0,0,0"
                                                 Command="{Binding CopyTextCommand}" CommandParameter="livepaper --action=play"/>
 
                                         <TextBlock Grid.Row="8" Grid.Column="0" Text="Toggle stop/play"
-                                                   Foreground="{StaticResource TextColor}" FontSize="12"
+                                                   Foreground="{DynamicResource TextColor}" FontSize="12"
                                                    VerticalAlignment="Center" Margin="0,0,16,0"/>
                                         <TextBlock Grid.Row="8" Grid.Column="1"
                                                    Text="livepaper --action=toggle-play"
                                                    FontFamily="Monospace" FontSize="12"
-                                                   Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
                                         <Button Grid.Row="8" Grid.Column="2" Content="Copy" Classes="ghost" FontSize="11" Margin="8,0,0,0"
                                                 Command="{Binding CopyTextCommand}" CommandParameter="livepaper --action=toggle-play"/>
 
                                         <TextBlock Grid.Row="10" Grid.Column="0" Text="Next wallpaper"
-                                                   Foreground="{StaticResource TextColor}" FontSize="12"
+                                                   Foreground="{DynamicResource TextColor}" FontSize="12"
                                                    VerticalAlignment="Center" Margin="0,0,16,0"/>
                                         <TextBlock Grid.Row="10" Grid.Column="1"
                                                    Text="livepaper --action=next-wallpaper"
                                                    FontFamily="Monospace" FontSize="12"
-                                                   Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
                                         <Button Grid.Row="10" Grid.Column="2" Content="Copy" Classes="ghost" FontSize="11" Margin="8,0,0,0"
                                                 Command="{Binding CopyTextCommand}" CommandParameter="livepaper --action=next-wallpaper"/>
 
                                         <TextBlock Grid.Row="12" Grid.Column="0" Text="Previous wallpaper"
-                                                   Foreground="{StaticResource TextColor}" FontSize="12"
+                                                   Foreground="{DynamicResource TextColor}" FontSize="12"
                                                    VerticalAlignment="Center" Margin="0,0,16,0"/>
                                         <TextBlock Grid.Row="12" Grid.Column="1"
                                                    Text="livepaper --action=previous-wallpaper"
                                                    FontFamily="Monospace" FontSize="12"
-                                                   Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
                                         <Button Grid.Row="12" Grid.Column="2" Content="Copy" Classes="ghost" FontSize="11" Margin="8,0,0,0"
                                                 Command="{Binding CopyTextCommand}" CommandParameter="livepaper --action=previous-wallpaper"/>
 
                                         <TextBlock Grid.Row="14" Grid.Column="0" Text="Random wallpaper"
-                                                   Foreground="{StaticResource TextColor}" FontSize="12"
+                                                   Foreground="{DynamicResource TextColor}" FontSize="12"
                                                    VerticalAlignment="Center" Margin="0,0,16,0"/>
                                         <TextBlock Grid.Row="14" Grid.Column="1"
                                                    Text="livepaper --action=random"
                                                    FontFamily="Monospace" FontSize="12"
-                                                   Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
                                         <Button Grid.Row="14" Grid.Column="2" Content="Copy" Classes="ghost" FontSize="11" Margin="8,0,0,0"
                                                 Command="{Binding CopyTextCommand}" CommandParameter="livepaper --action=random"/>
 
                                         <TextBlock Grid.Row="16" Grid.Column="0" Text="Volume up"
-                                                   Foreground="{StaticResource TextColor}" FontSize="12"
+                                                   Foreground="{DynamicResource TextColor}" FontSize="12"
                                                    VerticalAlignment="Center" Margin="0,0,16,0"/>
                                         <TextBlock Grid.Row="16" Grid.Column="1"
                                                    Text="livepaper --action=volume-up"
                                                    FontFamily="Monospace" FontSize="12"
-                                                   Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
                                         <Button Grid.Row="16" Grid.Column="2" Content="Copy" Classes="ghost" FontSize="11" Margin="8,0,0,0"
                                                 Command="{Binding CopyTextCommand}" CommandParameter="livepaper --action=volume-up"/>
 
                                         <TextBlock Grid.Row="18" Grid.Column="0" Text="Volume down"
-                                                   Foreground="{StaticResource TextColor}" FontSize="12"
+                                                   Foreground="{DynamicResource TextColor}" FontSize="12"
                                                    VerticalAlignment="Center" Margin="0,0,16,0"/>
                                         <TextBlock Grid.Row="18" Grid.Column="1"
                                                    Text="livepaper --action=volume-down"
                                                    FontFamily="Monospace" FontSize="12"
-                                                   Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
                                         <Button Grid.Row="18" Grid.Column="2" Content="Copy" Classes="ghost" FontSize="11" Margin="8,0,0,0"
                                                 Command="{Binding CopyTextCommand}" CommandParameter="livepaper --action=volume-down"/>
                                     </Grid>
@@ -1010,21 +1024,21 @@
 
                             <TextBlock Text="AUTOSTART"
                                        FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{StaticResource Muted}"
+                                       Foreground="{DynamicResource Muted}"
                                        LetterSpacing="2"/>
-                            <Border Background="{StaticResource BgCrust}" CornerRadius="10" Padding="14">
+                            <Border Background="{DynamicResource BgCrust}" CornerRadius="10" Padding="14">
                                 <StackPanel Spacing="10">
                                     <TextBlock Text="Add this to your compositor's autostart to restore your wallpaper on login:"
-                                               Foreground="{StaticResource Subtext}"
+                                               Foreground="{DynamicResource Subtext}"
                                                FontSize="12"/>
                                     <Grid ColumnDefinitions="Auto,*,Auto">
                                         <TextBlock Grid.Column="0" Text="Restore wallpaper"
-                                                   Foreground="{StaticResource TextColor}" FontSize="12"
+                                                   Foreground="{DynamicResource TextColor}" FontSize="12"
                                                    VerticalAlignment="Center" Margin="0,0,16,0"/>
                                         <TextBlock Grid.Column="1"
                                                    Text="livepaper --restore"
                                                    FontFamily="Monospace" FontSize="12"
-                                                   Foreground="{StaticResource Accent}" VerticalAlignment="Center"/>
+                                                   Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
                                         <Button Grid.Column="2" Content="Copy" Classes="ghost" FontSize="11" Margin="8,0,0,0"
                                                 Command="{Binding CopyTextCommand}" CommandParameter="livepaper --restore"/>
                                     </Grid>
@@ -1050,8 +1064,8 @@
         <Border x:Name="PlaylistPanel"
                 Grid.Row="1"
                 IsVisible="False"
-                Background="{StaticResource BgMantle}"
-                BorderBrush="{StaticResource Surface0}"
+                Background="{DynamicResource BgMantle}"
+                BorderBrush="{DynamicResource Surface0}"
                 BorderThickness="0,1,0,0">
             <DockPanel Margin="0,8,0,0">
 
@@ -1059,7 +1073,7 @@
                 <DockPanel DockPanel.Dock="Top" Margin="12,0,12,8">
                     <TextBlock Text="PLAYLIST"
                                FontSize="11" FontWeight="SemiBold"
-                               Foreground="{StaticResource Muted}"
+                               Foreground="{DynamicResource Muted}"
                                LetterSpacing="2"
                                VerticalAlignment="Center"/>
                     <StackPanel DockPanel.Dock="Right"
@@ -1098,7 +1112,7 @@
                 <!-- Empty state -->
                 <TextBlock IsVisible="{Binding IsPlaylistEmpty}"
                            Text="Add wallpapers using the + button on each card"
-                           Foreground="{StaticResource Muted}"
+                           Foreground="{DynamicResource Muted}"
                            FontSize="12"
                            Margin="12,0"
                            VerticalAlignment="Center"
@@ -1171,28 +1185,28 @@
 
         <!-- Status bar -->
         <Border Grid.Row="2"
-                Background="{StaticResource BgCrust}"
+                Background="{DynamicResource BgCrust}"
                 Padding="16,6">
             <TextBlock Text="{Binding StatusMessage}"
-                       Foreground="{StaticResource Muted}"
+                       Foreground="{DynamicResource Muted}"
                        FontSize="11"/>
         </Border>
 
         <!-- Download progress modal -->
         <Grid Grid.RowSpan="3" IsVisible="{Binding IsDownloading}" Background="#B2000000">
-            <Border Background="{StaticResource BgBase}" CornerRadius="12" Padding="28"
+            <Border Background="{DynamicResource BgBase}" CornerRadius="12" Padding="28"
                     Width="420" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="Downloading" FontSize="15" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextColor}"/>
+                               Foreground="{DynamicResource TextColor}"/>
                     <TextBlock Text="{Binding DownloadTitle}" FontSize="12"
-                               Foreground="{StaticResource Subtext}"
+                               Foreground="{DynamicResource Subtext}"
                                TextTrimming="CharacterEllipsis"/>
                     <ProgressBar Value="{Binding DownloadProgress}"
                                  Minimum="0" Maximum="1"
                                  IsIndeterminate="{Binding DownloadIndeterminate}"
                                  Height="6" CornerRadius="3"/>
-                    <TextBlock FontSize="11" Foreground="{StaticResource Muted}"
+                    <TextBlock FontSize="11" Foreground="{DynamicResource Muted}"
                                HorizontalAlignment="Right">
                         <TextBlock.Text>
                             <Binding Path="DownloadProgress" StringFormat="{}{0:P0}"/>
@@ -1209,7 +1223,7 @@
                     BorderThickness="0"
                     Command="{Binding ClosePreviewCommand}"/>
 
-            <Border Background="{StaticResource BgBase}" CornerRadius="12" Padding="16"
+            <Border Background="{DynamicResource BgBase}" CornerRadius="12" Padding="16"
                     MaxWidth="860" MaxHeight="600"
                     HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Grid RowDefinitions="*,Auto,Auto,Auto,Auto">
@@ -1236,16 +1250,16 @@
                         <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Grid.Column="0" Spacing="2">
                                 <TextBlock Text="This scene crashed during playback"
-                                           Foreground="{StaticResource Danger}"
+                                           Foreground="{DynamicResource Danger}"
                                            FontSize="12" FontWeight="SemiBold"/>
                                 <TextBlock Text="Removed from your playlist. Whitelist it to keep it there even when it crashes."
-                                           Foreground="{StaticResource Subtext}"
+                                           Foreground="{DynamicResource Subtext}"
                                            FontSize="11" TextWrapping="Wrap"/>
                             </StackPanel>
                             <CheckBox Grid.Column="1"
                                       Content="Whitelist"
                                       IsChecked="{Binding PreviewCard.IsWhitelisted}"
-                                      Foreground="{StaticResource TextColor}"
+                                      Foreground="{DynamicResource TextColor}"
                                       VerticalAlignment="Center"
                                       Margin="12,0,0,0"/>
                         </Grid>
@@ -1254,13 +1268,13 @@
                     <!-- Per-wallpaper volume override -->
                     <Border Grid.Row="2"
                             IsVisible="{Binding PreviewCard.LibraryItem, Converter={x:Static ObjectConverters.IsNotNull}}"
-                            Background="{StaticResource BgCrust}"
+                            Background="{DynamicResource BgCrust}"
                             CornerRadius="8" Padding="12,8" Margin="0,10,0,0">
                         <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                             <TextBlock Grid.Column="0"
                                        Text="Volume"
                                        VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextColor}"
+                                       Foreground="{DynamicResource TextColor}"
                                        Width="56"/>
                             <Slider Grid.Column="1"
                                     Minimum="0" Maximum="100"
@@ -1270,7 +1284,7 @@
                             <TextBlock Grid.Column="2"
                                        Text="{Binding PreviewCard.SliderVolume}"
                                        VerticalAlignment="Center"
-                                       Foreground="{StaticResource Subtext}"
+                                       Foreground="{DynamicResource Subtext}"
                                        Width="30" TextAlignment="Right"
                                        Margin="8,0,0,0"/>
                             <Button Grid.Column="3"
@@ -1288,13 +1302,13 @@
                     <!-- Per-wallpaper speed override -->
                     <Border Grid.Row="3"
                             IsVisible="{Binding PreviewCard.LibraryItem, Converter={x:Static ObjectConverters.IsNotNull}}"
-                            Background="{StaticResource BgCrust}"
+                            Background="{DynamicResource BgCrust}"
                             CornerRadius="8" Padding="12,8" Margin="0,10,0,0">
                         <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                             <TextBlock Grid.Column="0"
                                        Text="Speed"
                                        VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextColor}"
+                                       Foreground="{DynamicResource TextColor}"
                                        Width="56"/>
                             <Slider Grid.Column="1"
                                     Minimum="0.1" Maximum="4"
@@ -1305,7 +1319,7 @@
                             <TextBlock Grid.Column="2"
                                        Text="{Binding PreviewCard.SliderSpeed, StringFormat='{}{0:F1}x'}"
                                        VerticalAlignment="Center"
-                                       Foreground="{StaticResource Subtext}"
+                                       Foreground="{DynamicResource Subtext}"
                                        Width="36" TextAlignment="Right"
                                        Margin="8,0,0,0"/>
                             <Button Grid.Column="3"
@@ -1323,11 +1337,11 @@
                     <Grid Grid.Row="4" ColumnDefinitions="*,Auto,Auto" Margin="0,12,0,0">
                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                             <TextBlock Text="{Binding PreviewCard.Title}"
-                                       Foreground="{StaticResource TextColor}"
+                                       Foreground="{DynamicResource TextColor}"
                                        FontSize="13" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Text="{Binding PreviewCard.VideoDuration}"
                                        IsVisible="{Binding PreviewCard.VideoDuration, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                       Foreground="{StaticResource Subtext}"
+                                       Foreground="{DynamicResource Subtext}"
                                        FontSize="11"
                                        Margin="0,2,0,0"/>
                         </StackPanel>
@@ -1359,13 +1373,13 @@
         <!-- Error modal -->
         <Grid Grid.RowSpan="3" IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
               Background="#B2000000">
-            <Border Background="{StaticResource BgBase}" CornerRadius="12" Padding="28"
+            <Border Background="{DynamicResource BgBase}" CornerRadius="12" Padding="28"
                     Width="420" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="{Binding ErrorTitle}" FontSize="15" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextColor}"/>
+                               Foreground="{DynamicResource TextColor}"/>
                     <TextBlock Text="{Binding ErrorMessage}" FontSize="12"
-                               Foreground="{StaticResource TextColor}"
+                               Foreground="{DynamicResource TextColor}"
                                TextWrapping="Wrap"/>
                     <Button Content="OK" Classes="ghost" HorizontalAlignment="Right"
                             Command="{Binding DismissErrorCommand}"/>
@@ -1375,14 +1389,14 @@
 
         <!-- Clear library confirmation modal -->
         <Grid Grid.RowSpan="3" IsVisible="{Binding IsClearLibraryOpen}" Background="#B2000000">
-            <Border Background="{StaticResource BgBase}" CornerRadius="12" Padding="28"
+            <Border Background="{DynamicResource BgBase}" CornerRadius="12" Padding="28"
                     Width="380" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="Clear Library" FontSize="15" FontWeight="SemiBold"
-                               Foreground="{StaticResource Danger}"/>
+                               Foreground="{DynamicResource Danger}"/>
                     <TextBlock Text="This will permanently delete all downloaded wallpapers from disk. This cannot be undone."
-                               FontSize="12" Foreground="{StaticResource TextColor}" TextWrapping="Wrap"/>
-                    <TextBlock FontSize="12" Foreground="{StaticResource Muted}"
+                               FontSize="12" Foreground="{DynamicResource TextColor}" TextWrapping="Wrap"/>
+                    <TextBlock FontSize="12" Foreground="{DynamicResource Muted}"
                                IsVisible="{Binding !ClearLibraryReady}">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="You can confirm in {0}s…">
@@ -1403,15 +1417,15 @@
 
         <!-- Save playlist modal -->
         <Grid Grid.RowSpan="3" IsVisible="{Binding IsSavePlaylistOpen}" Background="#B2000000">
-            <Border Background="{StaticResource BgBase}" CornerRadius="12" Padding="24"
+            <Border Background="{DynamicResource BgBase}" CornerRadius="12" Padding="24"
                     Width="380" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="Save Playlist" FontSize="15" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextColor}"/>
+                               Foreground="{DynamicResource TextColor}"/>
                     <StackPanel Spacing="6">
                         <TextBlock Text="NAME"
                                    FontSize="11" FontWeight="SemiBold"
-                                   Foreground="{StaticResource Muted}"
+                                   Foreground="{DynamicResource Muted}"
                                    LetterSpacing="2"/>
                         <AutoCompleteBox Text="{Binding SavePlaylistName, Mode=TwoWay}"
                                          ItemsSource="{Binding AvailablePlaylists}"
@@ -1432,15 +1446,15 @@
 
         <!-- Load playlist modal -->
         <Grid Grid.RowSpan="3" IsVisible="{Binding IsLoadPlaylistOpen}" Background="#B2000000">
-            <Border Background="{StaticResource BgBase}" CornerRadius="12" Padding="24"
+            <Border Background="{DynamicResource BgBase}" CornerRadius="12" Padding="24"
                     Width="380" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="Load Playlist" FontSize="15" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextColor}"/>
+                               Foreground="{DynamicResource TextColor}"/>
                     <StackPanel Spacing="6">
                         <TextBlock Text="PLAYLIST"
                                    FontSize="11" FontWeight="SemiBold"
-                                   Foreground="{StaticResource Muted}"
+                                   Foreground="{DynamicResource Muted}"
                                    LetterSpacing="2"/>
                         <ComboBox ItemsSource="{Binding AvailablePlaylists}"
                                   SelectedItem="{Binding SelectedPlaylistToLoad}"
@@ -1448,7 +1462,7 @@
                                   IsVisible="{Binding AvailablePlaylists.Count}"/>
                         <TextBlock Text="No saved playlists"
                                    FontSize="12"
-                                   Foreground="{StaticResource Muted}"
+                                   Foreground="{DynamicResource Muted}"
                                    IsVisible="{Binding !AvailablePlaylists.Count}"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
@@ -1465,21 +1479,21 @@
 
         <!-- Import wallpaper modal -->
         <Grid Grid.RowSpan="3" IsVisible="{Binding IsImportOpen}" Background="#B2000000">
-            <Border Background="{StaticResource BgBase}" CornerRadius="12" Padding="24"
+            <Border Background="{DynamicResource BgBase}" CornerRadius="12" Padding="24"
                     Width="380" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="14">
                     <TextBlock Text="Import Wallpaper" FontSize="15" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextColor}"/>
+                               Foreground="{DynamicResource TextColor}"/>
                     <StackPanel Spacing="6">
                         <TextBlock Text="TITLE"
                                    FontSize="11" FontWeight="SemiBold"
-                                   Foreground="{StaticResource Muted}"
+                                   Foreground="{DynamicResource Muted}"
                                    LetterSpacing="2"/>
                         <TextBox Text="{Binding ImportTitle}"
                                  PlaceholderText="My wallpaper"/>
                         <TextBlock Text="A thumbnail will be auto-generated from the video."
                                    FontSize="11"
-                                   Foreground="{StaticResource Muted}"
+                                   Foreground="{DynamicResource Muted}"
                                    TextWrapping="Wrap"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">

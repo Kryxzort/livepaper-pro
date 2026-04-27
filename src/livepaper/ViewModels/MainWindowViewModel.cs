@@ -22,6 +22,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public string[] ThumbnailAspectOptions { get; } = ["Default", "16:9", "1:1"];
     public string[] CardSizeOptions { get; } = ["Small", "Medium", "Large"];
     public Action? CardLayoutChanged { get; set; }
+    public IReadOnlyList<AppTheme> Themes { get; } = ThemeService.All;
+
+    [ObservableProperty] private AppTheme _selectedTheme = ThemeService.Default;
 
     public List<IBgsProvider> Sources { get; } =
     [
@@ -624,6 +627,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _videoScale = _settings.VideoScale;
         _thumbnailAspect = _settings.ThumbnailAspect;
         _cardSize = _settings.CardSize;
+        _selectedTheme = ThemeService.Find(_settings.Theme) ?? ThemeService.Default;
         _librarySortIndex = _settings.LibrarySortIndex;
         _volume = _settings.Volume;
         _speed = _settings.Speed;
@@ -748,6 +752,12 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         CardLayoutChanged?.Invoke();
         _settings.CardSize = value;
+        SettingsService.Save(_settings);
+    }
+    partial void OnSelectedThemeChanged(AppTheme value)
+    {
+        ThemeService.Apply(value);
+        _settings.Theme = value.Name;
         SettingsService.Save(_settings);
     }
     partial void OnVolumeChanged(int value)
