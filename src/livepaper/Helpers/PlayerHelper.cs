@@ -1073,7 +1073,7 @@ public static class PlayerHelper
         {
             process.OutputDataReceived += (_, e) =>
             {
-                if (readyTcs != null && e.Data != null && e.Data.StartsWith("AV:"))
+                if (readyTcs != null && e.Data != null && (e.Data.StartsWith("AV:") || e.Data.StartsWith("V:")))
                     readyTcs.TrySetResult(true);
             };
             process.BeginOutputReadLine();
