@@ -25,8 +25,8 @@
                     Stretch="UniformToFill"
                     RenderOptions.BitmapInterpolationMode="LowQuality"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                <Viewbox IsVisible="{Binding IsGifActive}" Stretch="Uniform"
-                         HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Viewbox IsVisible="{Binding IsGifActive}" Stretch="UniformToFill"
+                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                     <gif:GifImage Source="{Binding ActiveGifSource}"/>
                 </Viewbox>
             </Panel>
