@@ -122,6 +122,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (!ClearLibraryReady) return;
         LibraryService.DeleteAll();
         LibraryWallpapers.Clear();
+        _currentlyPlayingCard = null;
         PlaylistItems.Clear();
         IsPlaylistEmpty = true;
         IsClearLibraryOpen = false;
@@ -507,14 +508,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void OnBrowseCardChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(WallpaperCardViewModel.IsSelected))
-            BrowseSelectedCount = BrowseWallpapers.Count(c => c.IsSelected);
+        if (e.PropertyName != nameof(WallpaperCardViewModel.IsSelected)) return;
+        if (sender is WallpaperCardViewModel card)
+            BrowseSelectedCount = Math.Max(0, BrowseSelectedCount + (card.IsSelected ? 1 : -1));
     }
 
     private void OnLibraryCardChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(WallpaperCardViewModel.IsSelected))
-            LibrarySelectedCount = LibraryWallpapers.Count(c => c.IsSelected);
+        if (e.PropertyName != nameof(WallpaperCardViewModel.IsSelected)) return;
+        if (sender is WallpaperCardViewModel card)
+            LibrarySelectedCount = Math.Max(0, LibrarySelectedCount + (card.IsSelected ? 1 : -1));
     }
 
     private int GetEffectiveIntervalSeconds() =>
@@ -603,6 +606,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private int _lastSelectedIndex = -1;
     private int _lastBrowseSelectedIndex = -1;
+    private WallpaperCardViewModel? _currentlyPlayingCard;
+    private bool _suppressFilterUpdate;
 
     public Func<Task<string?>>? PickFolderDialog { get; set; }
     public Func<Task<string?>>? PickVideoDialog { get; set; }
@@ -694,7 +699,7 @@ public partial class MainWindowViewModel : ViewModelBase
             if (e.OldItems != null)
                 foreach (WallpaperCardViewModel c in e.OldItems) c.PropertyChanged -= OnLibraryCardChanged;
             LibrarySelectedCount = LibraryWallpapers.Count(c => c.IsSelected);
-            UpdateFilteredLibrary();
+            if (!_suppressFilterUpdate) UpdateFilteredLibrary();
         };
 
         PlaylistItems.CollectionChanged += (_, _) =>
@@ -708,11 +713,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
         PlayerHelper.OnWallpaperChanged = path => Dispatcher.UIThread.Post(() =>
         {
-            foreach (var c in LibraryWallpapers) c.IsCurrentlyPlaying = false;
+            if (_currentlyPlayingCard != null)
+            {
+                _currentlyPlayingCard.IsCurrentlyPlaying = false;
+                _currentlyPlayingCard = null;
+            }
             if (path != null)
             {
                 var playing = LibraryWallpapers.FirstOrDefault(c => c.LibraryItem?.VideoPath == path);
-                if (playing != null) playing.IsCurrentlyPlaying = true;
+                if (playing != null)
+                {
+                    playing.IsCurrentlyPlaying = true;
+                    _currentlyPlayingCard = playing;
+                }
             }
         });
 
@@ -775,7 +788,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     partial void OnVolumeChanged(int value)
     {
-        if (LibraryWallpapers.FirstOrDefault(c => c.IsCurrentlyPlaying)?.VolumeOverride == null)
+        if (_currentlyPlayingCard?.VolumeOverride == null)
             Task.Run(() => PlayerHelper.SetVolume(value));
         foreach (var c in LibraryWallpapers)
             c.UpdateGlobalVolume(value);
@@ -791,7 +804,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     partial void OnSpeedChanged(double value)
     {
-        if (LibraryWallpapers.FirstOrDefault(c => c.IsCurrentlyPlaying)?.SpeedOverride == null)
+        if (_currentlyPlayingCard?.SpeedOverride == null)
             Task.Run(() => PlayerHelper.SetSpeed(value));
         foreach (var c in LibraryWallpapers)
             c.UpdateGlobalSpeed(value);
@@ -1070,10 +1083,16 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var playlist = JsonSerializer.Deserialize<CustomPlaylist>(File.ReadAllText(path));
             if (playlist == null) return;
+            var byPath = LibraryWallpapers
+                .Where(c => c.LibraryItem != null)
+                .ToDictionary(c => c.LibraryItem!.VideoPath);
             foreach (var videoPath in playlist.VideoPaths)
             {
-                var libCard = LibraryWallpapers.FirstOrDefault(c => c.LibraryItem?.VideoPath == videoPath);
-                if (libCard != null) { PlaylistItems.Add(libCard); libCard.IsInPlaylist = true; }
+                if (byPath.TryGetValue(videoPath, out var libCard))
+                {
+                    PlaylistItems.Add(libCard);
+                    libCard.IsInPlaylist = true;
+                }
             }
             PlaylistShuffle = playlist.Settings.Order == PlaylistOrder.Shuffle;
             int secs = playlist.Settings.IntervalSeconds;
@@ -1168,10 +1187,12 @@ public partial class MainWindowViewModel : ViewModelBase
             foreach (var c in PlaylistItems) c.IsInPlaylist = false;
             PlaylistItems.Clear();
 
+            var byPath = LibraryWallpapers
+                .Where(c => c.LibraryItem != null)
+                .ToDictionary(c => c.LibraryItem!.VideoPath);
             foreach (var videoPath in playlist.VideoPaths)
             {
-                var libCard = LibraryWallpapers.FirstOrDefault(c => c.LibraryItem?.VideoPath == videoPath);
-                if (libCard != null)
+                if (byPath.TryGetValue(videoPath, out var libCard))
                 {
                     PlaylistItems.Add(libCard);
                     libCard.IsInPlaylist = true;
@@ -1243,7 +1264,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            bool wasOnlySelected = card.IsSelected && BrowseWallpapers.Count(c => c.IsSelected) == 1;
+            bool wasOnlySelected = card.IsSelected && BrowseSelectedCount == 1;
             foreach (var c in BrowseWallpapers) c.IsSelected = false;
             if (!wasOnlySelected)
             {
@@ -1277,7 +1298,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            bool wasOnlySelected = card.IsSelected && displayed.Count(c => c.IsSelected) == 1;
+            bool wasOnlySelected = card.IsSelected && LibrarySelectedCount == 1;
             foreach (var c in displayed) c.IsSelected = false;
             if (!wasOnlySelected)
             {
@@ -1460,7 +1481,6 @@ public partial class MainWindowViewModel : ViewModelBase
                 var item = await DownloadHelper.DownloadAsync(detail, target.ThumbnailSource, target.PageUrl, progressReporter, WeCopyFiles);
                 var libCard = MakeLibraryCard(item);
                 LibraryWallpapers.Add(libCard);
-                UpdateFilteredLibrary();
 
                 if (target == applyTarget && !applied) { ApplyAndSave(item.VideoPath); applied = true; }
                 StatusMessage = $"Applied: {target.Title}";
@@ -1506,6 +1526,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 LibraryService.Delete(target.LibraryItem);
                 LibraryWallpapers.Remove(target);
+                if (target == _currentlyPlayingCard) _currentlyPlayingCard = null;
                 if (target.IsInPlaylist)
                 {
                     PlaylistItems.Remove(target);
@@ -1602,8 +1623,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void LoadLibrary()
     {
-        foreach (var item in LibraryService.LoadAll())
-            LibraryWallpapers.Add(MakeLibraryCard(item));
+        _suppressFilterUpdate = true;
+        try
+        {
+            foreach (var item in LibraryService.LoadAll())
+                LibraryWallpapers.Add(MakeLibraryCard(item));
+        }
+        finally
+        {
+            _suppressFilterUpdate = false;
+        }
     }
 
     private void SyncSelectedVolume(WallpaperCardViewModel source, int? volume)
