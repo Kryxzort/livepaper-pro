@@ -67,6 +67,7 @@ public static class AudioMonitor
     private static volatile bool _isMuted;
     public static bool IsMuted => _isMuted;
     private static int _aboveThresholdCount;
+    private static bool _onlyIfMprisActive;
 
     // Entry point for the detached `livepaper --monitor` daemon process.
     public static void RunDaemon()
@@ -74,7 +75,7 @@ public static class AudioMonitor
         WriteMonitorPid();
         var settings = SettingsService.Load();
         if (settings.AutoMute)
-            Start(settings.AutoMuteDelayMs, settings.AutoUnmuteDelayMs, settings.AutoMuteThresholdDb);
+            Start(settings.AutoMuteDelayMs, settings.AutoUnmuteDelayMs, settings.AutoMuteThresholdDb, settings.AutoMuteOnlyIfMprisActive);
         Thread.Sleep(Timeout.Infinite);
     }
 
@@ -89,9 +90,10 @@ public static class AudioMonitor
         catch { }
     }
 
-    public static void Start(int muteDelayMs, int unmuteDelayMs, double thresholdDb)
+    public static void Start(int muteDelayMs, int unmuteDelayMs, double thresholdDb, bool onlyIfMprisActive = false)
     {
         Stop();
+        _onlyIfMprisActive = onlyIfMprisActive;
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
         Task.Run(() => WatchStreamsAsync(thresholdDb, ct));
@@ -281,8 +283,11 @@ public static class AudioMonitor
                 belowCount = 0;
                 if (aboveCount >= muteTicksNeeded)
                 {
-                    PlayerHelper.SetMute(true);
-                    _isMuted = true;
+                    if (!_onlyIfMprisActive || IsAnyMprisPlayerActive())
+                    {
+                        PlayerHelper.SetMute(true);
+                        _isMuted = true;
+                    }
                     aboveCount = 0;
                 }
             }
@@ -303,6 +308,25 @@ public static class AudioMonitor
                 belowCount = 0;
             }
         }
+    }
+
+    private static bool IsAnyMprisPlayerActive()
+    {
+        try
+        {
+            var psi = new ProcessStartInfo("playerctl", "status")
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
+            using var proc = Process.Start(psi);
+            if (proc == null) return false;
+            proc.WaitForExit(500);
+            return proc.ExitCode == 0;
+        }
+        catch { return false; }
     }
 
     private static async Task<List<uint>> GetNonMpvStreamIdsAsync(CancellationToken ct)
