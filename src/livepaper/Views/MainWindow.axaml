@@ -1458,6 +1458,11 @@
                                        Foreground="{DynamicResource Subtext}"
                                        FontSize="11"
                                        Margin="0,2,0,0"/>
+                            <TextBlock Text="{Binding PreviewCard.WorkshopId, StringFormat='Workshop ID: {0}'}"
+                                       IsVisible="{Binding PreviewCard.WorkshopId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                       Foreground="{DynamicResource Subtext}"
+                                       FontSize="11"
+                                       Margin="0,2,0,0"/>
                         </StackPanel>
                         <Button Grid.Column="1"
                                 Content="Download &amp; Apply"
