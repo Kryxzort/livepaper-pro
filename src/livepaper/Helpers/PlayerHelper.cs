@@ -1119,6 +1119,8 @@ public static class PlayerHelper
             }
         }
         catch { }
+        foreach (var proc in Process.GetProcessesByName("linux-wallpaperengine"))
+            try { proc.Kill(entireProcessTree: true); } catch { }
     }
 
     private static void ClearTimedStateFile()
