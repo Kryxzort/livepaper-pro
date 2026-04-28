@@ -1546,7 +1546,11 @@
                     Width="67" Height="60"
                     CornerRadius="4"
                     ClipToBounds="True"
-                    Opacity="0.85"/>
+                    Opacity="0.85">
+                <Image x:Name="DragPreviewGifImage"
+                       IsVisible="False"
+                       Stretch="UniformToFill"/>
+            </Border>
         </Canvas>
 
     </Grid>
