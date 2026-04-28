@@ -1189,6 +1189,10 @@
                                                        HorizontalAlignment="Center"
                                                        VerticalAlignment="Center"/>
                                         </Button>
+                                        <Border IsHitTestVisible="False" CornerRadius="6"
+                                                IsVisible="{Binding IsGifActive}"
+                                                BorderBrush="{DynamicResource Accent}"
+                                                BorderThickness="1.5"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
