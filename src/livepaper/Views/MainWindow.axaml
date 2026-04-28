@@ -144,15 +144,29 @@
                                                 PointerExited="OnCardPointerExited">
                                             <Grid RowDefinitions="Auto,*,Auto">
 
-                                                <Button Grid.Row="0" Padding="0"
-                                                        Background="Transparent" BorderThickness="0"
-                                                        HorizontalAlignment="Stretch"
-                                                        CornerRadius="10,10,0,0" ClipToBounds="True"
-                                                        Height="{Binding $parent[Window].DataContext.CardThumbnailHeight}"
-                                                        Command="{Binding $parent[Window].DataContext.OpenPreviewCommand}"
-                                                        CommandParameter="{Binding}">
-                                                    <TemplatedControl Template="{StaticResource ThumbnailDisplay}"/>
-                                                </Button>
+                                                <Panel Grid.Row="0"
+                                                       Height="{Binding $parent[Window].DataContext.CardThumbnailHeight}">
+                                                    <Button Padding="0"
+                                                            Background="Transparent" BorderThickness="0"
+                                                            HorizontalAlignment="Stretch"
+                                                            CornerRadius="10,10,0,0" ClipToBounds="True"
+                                                            Command="{Binding $parent[Window].DataContext.OpenPreviewCommand}"
+                                                            CommandParameter="{Binding}">
+                                                        <TemplatedControl Template="{StaticResource ThumbnailDisplay}"/>
+                                                    </Button>
+                                                    <!-- SCENE badge -->
+                                                    <Border HorizontalAlignment="Left"
+                                                            VerticalAlignment="Top"
+                                                            Margin="5,5,0,0"
+                                                            IsVisible="{Binding IsScene}"
+                                                            Background="{DynamicResource Accent}"
+                                                            CornerRadius="4" Padding="4,2"
+                                                            IsHitTestVisible="False">
+                                                        <TextBlock Text="SCENE"
+                                                                   FontSize="9" FontWeight="Bold"
+                                                                   Foreground="{DynamicResource AccentFg}"/>
+                                                    </Border>
+                                                </Panel>
 
                                                 <TextBlock Grid.Row="1"
                                                            Text="{Binding Title}"
