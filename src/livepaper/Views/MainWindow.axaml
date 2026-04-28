@@ -1152,12 +1152,20 @@
                             <DataTemplate x:DataType="vm:WallpaperCardViewModel">
                                 <Border Width="100" CornerRadius="6"
                                         ClipToBounds="True"
-                                        Background="{DynamicResource BgBase}">
+                                        Background="{DynamicResource BgBase}"
+                                        PointerEntered="OnCardPointerEntered"
+                                        PointerExited="OnCardPointerExited">
                                     <Grid Height="90">
-                                        <asyncImageLoader:AdvancedImage
-                                            Source="{Binding ThumbnailSource}"
-                                            Stretch="UniformToFill"
-                                            Width="100" Height="90"/>
+                                        <Panel>
+                                            <asyncImageLoader:AdvancedImage
+                                                Source="{Binding ThumbnailSource}"
+                                                Stretch="UniformToFill"
+                                                Width="100" Height="90"/>
+                                            <Image IsVisible="{Binding IsGifActive}"
+                                                   aimg:ImageBehavior.AnimatedSource="{Binding ActiveGifSource}"
+                                                   Stretch="UniformToFill"
+                                                   Width="100" Height="90"/>
+                                        </Panel>
                                         <Border Background="#99000000"
                                                 VerticalAlignment="Bottom"
                                                 Padding="4,2">
