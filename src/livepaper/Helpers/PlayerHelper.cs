@@ -28,6 +28,7 @@ public static class PlayerHelper
     private static long _timedRemainingMs;
     private static DateTime _lastTickTime;
     private static readonly TimeSpan TickInterval = TimeSpan.FromMilliseconds(100);
+    private static CancellationTokenSource? _observerCts;
     private static readonly object _lock = new();
     private static CancellationTokenSource? _daemonCts;
     private static bool _waitForVideoEnd;
@@ -344,9 +345,13 @@ public static class PlayerHelper
             KillAll();
             ClearTimedStateFile();
 
-            if (videoPaths.Count == 1)
+            var paths = shuffle
+                ? videoPaths.OrderBy(_ => Guid.NewGuid()).ToArray()
+                : videoPaths.ToArray();
+
+            if (paths.Length == 1)
             {
-                _current = Launch(mpvOptions, videoPaths[0]);
+                _current = Launch(mpvOptions, paths[0]);
                 return;
             }
 
@@ -356,11 +361,11 @@ public static class PlayerHelper
             Directory.CreateDirectory(cacheDir);
 
             var playlistPath = Path.Combine(cacheDir, "playlist.txt");
-            File.WriteAllLines(playlistPath, videoPaths.Take(videoPaths.Count - 1));
+            File.WriteAllLines(playlistPath, paths.Take(paths.Length - 1));
 
-            var shuffleFlag = shuffle ? " --shuffle" : "";
-            var options = $"{mpvOptions} --playlist={playlistPath} --loop-playlist=inf{shuffleFlag}";
-            _current = Launch(options, videoPaths[videoPaths.Count - 1]);
+            var options = $"{mpvOptions} --playlist={playlistPath} --loop-playlist=inf";
+            _current = Launch(options, paths[paths.Length - 1]);
+            StartPlaylistObserver(paths);
         }
     }
 
@@ -1297,6 +1302,75 @@ public static class PlayerHelper
     public static void SetPlaylistShuffle(bool shuffle) =>
         TrySendCommand(shuffle ? "playlist-shuffle" : "playlist-unshuffle");
 
+    private static void StartPlaylistObserver(IReadOnlyList<string> videoPaths)
+    {
+        _observerCts?.Cancel();
+        _observerCts?.Dispose();
+        var cts = _observerCts = new CancellationTokenSource();
+        var paths = videoPaths.ToArray();
+        Task.Run(() => ObservePathAsync(paths, cts.Token));
+    }
+
+    private static void StopPlaylistObserver()
+    {
+        _observerCts?.Cancel();
+        _observerCts?.Dispose();
+        _observerCts = null;
+    }
+
+    private static async Task ObservePathAsync(string[] videoPaths, CancellationToken ct)
+    {
+        var socketPath = IpcSocket;
+        for (int i = 0; i < 50 && !File.Exists(socketPath) && !ct.IsCancellationRequested; i++)
+        {
+            try { await Task.Delay(100, ct).ConfigureAwait(false); }
+            catch (OperationCanceledException) { return; }
+        }
+        if (ct.IsCancellationRequested || !File.Exists(socketPath)) return;
+
+        try
+        {
+            using var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+            socket.Connect(new UnixDomainSocketEndPoint(socketPath));
+            using var ns = new NetworkStream(socket, ownsSocket: false);
+            using var reader = new StreamReader(ns, Encoding.UTF8);
+            using var writer = new StreamWriter(ns, Encoding.UTF8) { AutoFlush = true };
+            using var reg = ct.Register(() => { try { socket.Close(); } catch { } });
+
+            // playlist-pos fires before the new file loads — earliest possible apply
+            // videoPaths is already in the exact order passed to mpv (pre-shuffled if shuffle was on)
+            await writer.WriteLineAsync("{\"command\":[\"observe_property\",1,\"playlist-pos\"]}").ConfigureAwait(false);
+
+            while (!ct.IsCancellationRequested)
+            {
+                var line = await reader.ReadLineAsync(ct).ConfigureAwait(false);
+                if (line == null) break;
+                try
+                {
+                    using var doc = JsonDocument.Parse(line);
+                    var root = doc.RootElement;
+                    if (!root.TryGetProperty("event", out var ev) || ev.GetString() != "property-change") continue;
+                    if (!root.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Number) continue;
+                    var pos = data.GetInt32();
+                    if (pos >= 0 && pos < videoPaths.Length)
+                        ApplyOverridesForPath(videoPaths[pos]);
+                }
+                catch { }
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch { }
+    }
+
+    private static void ApplyOverridesForPath(string path)
+    {
+        var settings = SettingsService.Load();
+        var vol = ReadVolumeOverride(path) ?? settings.Volume;
+        var spd = ReadSpeedOverride(path) ?? settings.Speed;
+        SetVolume(vol);
+        SetSpeed(spd);
+    }
+
     public static void SetVideoScale(string scale)
     {
         double panscan = scale == "fill" ? 1.0 : 0.0;
@@ -1399,6 +1473,7 @@ public static class PlayerHelper
                 try { proc.Kill(entireProcessTree: true); } catch { }
             }
         }
+        StopPlaylistObserver();
         KillLweProcess();
         _current = null;
         var socketPath = IpcSocket;
