@@ -123,6 +123,7 @@ public partial class MainWindowViewModel : ViewModelBase
         foreach (var b in _undoBatches) LibraryService.PurgeBatch(b.BatchDir);
         _undoBatches.Clear();
         CanUndo = false;
+        Stop();
         LibraryService.DeleteAll();
         LibraryWallpapers.Clear();
         _currentlyPlayingCard = null;
