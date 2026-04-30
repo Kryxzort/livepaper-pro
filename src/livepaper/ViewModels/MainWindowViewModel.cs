@@ -1359,7 +1359,17 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _shuffleLibrary;
 
     [RelayCommand]
-    private void Stop() { PlayerHelper.Stop(); StatusMessage = ""; }
+    private void Stop()
+    {
+        PlayerHelper.Stop();
+        AudioMonitor.KillDetachedMonitor();
+        StatusMessage = "";
+        if (_currentlyPlayingCard != null)
+        {
+            _currentlyPlayingCard.IsCurrentlyPlaying = false;
+            _currentlyPlayingCard = null;
+        }
+    }
 
     [RelayCommand]
     private void PlayLibrary()
