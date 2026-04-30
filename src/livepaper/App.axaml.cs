@@ -45,6 +45,8 @@ public partial class App : Application
                 // the user explicitly stopped.
                 if (settings.LastSession?.IsTimedPlaylist == true && PlayerHelper.IsTimedPlaylistActive())
                     PlayerHelper.SpawnTimerDaemon();
+                else if (settings.LastSession?.IsPlaylist == true && PlayerHelper.IsPlaying)
+                    PlayerHelper.SpawnTimerDaemon();
             };
 
             desktop.MainWindow = window;

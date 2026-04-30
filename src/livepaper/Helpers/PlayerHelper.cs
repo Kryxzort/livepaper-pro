@@ -88,6 +88,10 @@ public static class PlayerHelper
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
         ".config", "livepaper", "timed_state.json");
 
+    private static string PlaylistObserverPathsPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        ".cache", "livepaper", "playlist_observer_paths.json");
+
     private static string TimerDaemonPidPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
         ".config", "livepaper", "timer.pid");
@@ -374,6 +378,7 @@ public static class PlayerHelper
             _advanceOnVideoEnd = false;
             KillAll();
             ClearTimedStateFile();
+            ClearPlaylistObserverPaths();
 
             var paths = shuffle
                 ? videoPaths.OrderBy(_ => Guid.NewGuid()).ToArray()
@@ -406,6 +411,7 @@ public static class PlayerHelper
 
             var options = $"{mpvOptions} --playlist={playlistPath} --loop-playlist=inf";
             _current = Launch(options, paths[paths.Length - 1]);
+            try { File.WriteAllText(PlaylistObserverPathsPath, JsonSerializer.Serialize(paths)); } catch { }
             StartPlaylistObserver(paths);
         }
     }
@@ -1467,6 +1473,7 @@ public static class PlayerHelper
         {
             KillAll();
             SignalTimerStop();
+            ClearPlaylistObserverPaths();
         }
     }
 
@@ -1519,20 +1526,39 @@ public static class PlayerHelper
     {
         var settings = SettingsService.Load();
         var session = settings.LastSession;
-        if (session?.IsTimedPlaylist != true || session.Paths.Count == 0) return;
+        if (session == null || session.Paths.Count == 0) return;
 
-        bool started = IsPlaying && ResumeTimedTimer();
-        if (!started)
+        if (session.IsTimedPlaylist)
         {
-            if (settings.ResumeFromLast && RestoreTimedPlaylist()) { }
-            else
+            bool started = IsPlaying && ResumeTimedTimer();
+            if (!started)
             {
-                var paths = session.Shuffle
-                    ? session.Paths.OrderBy(_ => Guid.NewGuid()).ToList()
-                    : session.Paths;
-                ApplyTimedPlaylist(paths, settings.BuildMpvOptions(), session.Shuffle, session.TimedIntervalSeconds, session.WaitForVideoEnd);
+                if (settings.ResumeFromLast && RestoreTimedPlaylist()) { }
+                else
+                {
+                    var paths = session.Shuffle
+                        ? session.Paths.OrderBy(_ => Guid.NewGuid()).ToList()
+                        : session.Paths;
+                    ApplyTimedPlaylist(paths, settings.BuildMpvOptions(), session.Shuffle, session.TimedIntervalSeconds, session.WaitForVideoEnd);
+                }
             }
         }
+        else if (session.IsPlaylist)
+        {
+            // Reconnect the playlist-pos observer to the already-running mpvpaper
+            // so per-video volume/speed overrides keep firing after GUI close.
+            // Use the saved observer paths (post-shuffle order) if available.
+            List<string> observerPaths = session.Paths;
+            try
+            {
+                if (File.Exists(PlaylistObserverPathsPath))
+                    observerPaths = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(PlaylistObserverPathsPath)) ?? session.Paths;
+            }
+            catch { }
+            StartPlaylistObserver(observerPaths);
+        }
+        else return;
+
         WriteTimerDaemonPid();
         try { DaemonToken.WaitHandle.WaitOne(); }
         finally { DeleteTimerDaemonPid(); }
@@ -1823,6 +1849,11 @@ public static class PlayerHelper
     private static void ClearTimedStateFile()
     {
         try { File.Delete(TimedStatePath); } catch { }
+    }
+
+    private static void ClearPlaylistObserverPaths()
+    {
+        try { File.Delete(PlaylistObserverPathsPath); } catch { }
     }
 
     private static void SignalTimerStop()
