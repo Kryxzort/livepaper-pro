@@ -520,8 +520,7 @@
                                                    FontSize="11" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource Muted}"
                                                    LetterSpacing="2"/>
-                                        <StackPanel Orientation="Horizontal" Spacing="12"
-                                                    IsEnabled="{Binding !DisplayAdvanceOnVideoEnd}">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
                                             <StackPanel Spacing="6">
                                                 <TextBlock Text="Hours" FontSize="12"
                                                            Foreground="{DynamicResource Subtext}"/>
@@ -627,8 +626,7 @@
                                     <CheckBox Content="Wait for video to end after interval fires before switching"
                                               IsChecked="{Binding GlobalWaitForVideoEnd}"
                                               Foreground="{DynamicResource TextColor}"/>
-                                    <StackPanel Spacing="6"
-                                                IsEnabled="{Binding !GlobalAdvanceOnVideoEnd}">
+                                    <StackPanel Spacing="6">
                                         <TextBlock Text="SWITCH EVERY"
                                                    FontSize="11" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource Muted}"
@@ -1419,7 +1417,7 @@
 
                     <!-- Per-wallpaper speed override -->
                     <Border Grid.Row="3"
-                            IsVisible="{Binding PreviewCard.LibraryItem, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            IsVisible="{Binding PreviewCard.IsSpeedSliderVisible}"
                             Background="{DynamicResource BgCrust}"
                             CornerRadius="8" Padding="12,8" Margin="0,10,0,0">
                         <Grid ColumnDefinitions="Auto,*,Auto,Auto">

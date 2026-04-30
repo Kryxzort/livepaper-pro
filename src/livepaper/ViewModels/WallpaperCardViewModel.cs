@@ -67,6 +67,7 @@ public partial class WallpaperCardViewModel : ViewModelBase
     private double _globalSpeed;
     private bool _suppressSpeedChange;
 
+    public bool IsSpeedSliderVisible => LibraryItem != null && !IsScene;
     public bool IsVolumeSynced => _volumeOverride == null;
     public int? VolumeOverride => _volumeOverride;
     public bool IsSpeedSynced => _speedOverride == null;

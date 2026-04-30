@@ -549,39 +549,53 @@ public partial class MainWindowViewModel : ViewModelBase
         if (s == null || (!s.IsTimedPlaylist && !s.IsPlaylist)) return;
 
         bool advanceOnEnd = GetEffectiveAdvanceOnVideoEnd();
+        // Mixed playlists (scenes + videos) use timed machinery internally even when
+        // the session was saved as IsPlaylist. Check live runtime state to detect this.
+        bool isTimedMode = s.IsTimedPlaylist || (s.IsPlaylist && PlayerHelper.IsTimedModeActive);
 
-        if (!advanceOnEnd && s.IsTimedPlaylist)
+        if (isTimedMode && (!advanceOnEnd || s.IsPlaylist))
         {
+            // Timed or mixed playlist: propagate interval/mode changes live.
+            // For mixed (s.IsPlaylist), pass the actual advanceOnVideoEnd so the
+            // scene-aware chain is enabled/disabled correctly if the user toggles it.
             int secs = GetEffectiveIntervalSeconds();
-            if (secs > 0) PlayerHelper.UpdateTimedSettings(PlaylistShuffle, secs, GetEffectiveWaitForVideoEnd());
+            if (secs > 0) PlayerHelper.UpdateTimedSettings(PlaylistShuffle, secs, GetEffectiveWaitForVideoEnd(),
+                advanceOnVideoEnd: advanceOnEnd && s.IsPlaylist);
+            return;
         }
-        else if (advanceOnEnd && s.IsPlaylist)
+
+        if (!isTimedMode && advanceOnEnd)
         {
-            // Shuffle order changes are handled by ApplyShuffleOrderIfRunning; nothing else to do here
+            // Pure mpv-native advance-on-end — shuffle order handled by ApplyShuffleOrderIfRunning
+            return;
         }
-        else
+
+        // Mode changed — switch in place via IPC (no mpvpaper restart)
+        var paths = s.Paths;
+        if (paths.Count == 0) return;
+        if (advanceOnEnd)
         {
-            // Mode changed — switch in place via IPC (no mpvpaper restart)
-            var paths = s.Paths;
-            if (paths.Count == 0) return;
-            if (advanceOnEnd)
+            if (paths.Any(p => p.EndsWith(".scene", StringComparison.OrdinalIgnoreCase)))
             {
-                var mpvPaths = paths.Where(p => !p.EndsWith(".scene", StringComparison.OrdinalIgnoreCase)).ToList();
-                if (mpvPaths.Count == 0) return;
-                PlayerHelper.SwitchFromTimedToAdvanceOnEnd(mpvPaths, PlaylistShuffle);
-                _settings.LastSession = new LastSession { IsPlaylist = true, Paths = mpvPaths, Shuffle = PlaylistShuffle };
+                // Mixed playlist: full restart so the scene-aware timed machinery is used
+                PlayerHelper.ApplyPlaylist(paths, _settings.BuildMpvPlaylistOptions(), PlaylistShuffle, GetEffectiveIntervalSeconds());
             }
             else
             {
-                int secs = GetEffectiveIntervalSeconds();
-                if (secs == 0) return;
-                bool waitForVideoEnd = GetEffectiveWaitForVideoEnd();
-                var playPaths = PlaylistShuffle ? paths.OrderBy(_ => Guid.NewGuid()).ToList() : new List<string>(paths);
-                PlayerHelper.SwitchFromAdvanceOnEndToTimed(playPaths, _settings.BuildMpvOptions(), PlaylistShuffle, secs, waitForVideoEnd);
-                _settings.LastSession = new LastSession { IsTimedPlaylist = true, Paths = paths, Shuffle = PlaylistShuffle, TimedIntervalSeconds = secs, WaitForVideoEnd = waitForVideoEnd };
+                PlayerHelper.SwitchFromTimedToAdvanceOnEnd(paths, PlaylistShuffle);
             }
-            SettingsService.Save(_settings);
+            _settings.LastSession = new LastSession { IsPlaylist = true, Paths = paths, Shuffle = PlaylistShuffle };
         }
+        else
+        {
+            int secs = GetEffectiveIntervalSeconds();
+            if (secs == 0) return;
+            bool waitForVideoEnd = GetEffectiveWaitForVideoEnd();
+            var playPaths = PlaylistShuffle ? paths.OrderBy(_ => Guid.NewGuid()).ToList() : new List<string>(paths);
+            PlayerHelper.SwitchFromAdvanceOnEndToTimed(playPaths, _settings.BuildMpvOptions(), PlaylistShuffle, secs, waitForVideoEnd);
+            _settings.LastSession = new LastSession { IsTimedPlaylist = true, Paths = paths, Shuffle = PlaylistShuffle, TimedIntervalSeconds = secs, WaitForVideoEnd = waitForVideoEnd };
+        }
+        SettingsService.Save(_settings);
     }
 
 
@@ -885,7 +899,7 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnNoAudioChanged(bool value)
     {
         SaveAndRebuild();
-        Task.Run(() => PlayerHelper.SetMute(value));
+        Task.Run(() => PlayerHelper.SetUserMute(value));
         RefreshPlayingStatus();
     }
     partial void OnDisableCacheChanged(bool value) => SaveAndRebuild();
@@ -1057,17 +1071,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (GetEffectiveAdvanceOnVideoEnd())
         {
-            var mpvPaths = paths.Where(p => !p.EndsWith(".scene", StringComparison.OrdinalIgnoreCase)).ToList();
-            if (mpvPaths.Count == 0)
-            {
-                StatusMessage = "No video wallpapers in playlist (scenes require timed playlist)";
-                return;
-            }
-            PlayerHelper.ApplyPlaylist(mpvPaths, _settings.BuildMpvPlaylistOptions(), PlaylistShuffle);
+            PlayerHelper.ApplyPlaylist(paths, _settings.BuildMpvPlaylistOptions(), PlaylistShuffle, GetEffectiveIntervalSeconds());
             _settings.LastSession = new LastSession
             {
                 IsPlaylist = true,
-                Paths = mpvPaths,
+                Paths = paths,
                 Shuffle = PlaylistShuffle
             };
             SettingsService.Save(_settings);
@@ -1206,6 +1214,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 PlayerHelper.ReorderPlaylist(newPaths, true, shuffle);
             else
                 PlayerHelper.SyncAdvanceOnEndPlaylist(oldPaths, newPaths, shuffle);
+            Dispatcher.UIThread.Post(() => RefreshPlayingStatus());
         }, TaskScheduler.Default);
     }
 
@@ -1763,14 +1772,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
             if (_settings.GlobalAdvanceOnVideoEnd)
             {
-                var mpvPaths = paths.Where(p => !p.EndsWith(".scene", StringComparison.OrdinalIgnoreCase)).ToList();
-                if (mpvPaths.Count == 0)
-                {
-                    StatusMessage = "No video wallpapers in library (scenes require timed playlist)";
-                    return;
-                }
-                PlayerHelper.ApplyPlaylist(mpvPaths, _settings.BuildMpvPlaylistOptions(), ShuffleLibrary);
-                _settings.LastSession = new LastSession { IsPlaylist = true, Paths = mpvPaths, Shuffle = ShuffleLibrary };
+                PlayerHelper.ApplyPlaylist(paths, _settings.BuildMpvPlaylistOptions(), ShuffleLibrary, _settings.GlobalIntervalSeconds);
+                _settings.LastSession = new LastSession { IsPlaylist = true, Paths = paths, Shuffle = ShuffleLibrary };
                 SettingsService.Save(_settings);
                 RefreshPlayingStatus();
                 return;
