@@ -1071,13 +1071,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (GetEffectiveAdvanceOnVideoEnd())
         {
-            PlayerHelper.ApplyPlaylist(paths, _settings.BuildMpvPlaylistOptions(), PlaylistShuffle, GetEffectiveIntervalSeconds());
-            _settings.LastSession = new LastSession
-            {
-                IsPlaylist = true,
-                Paths = paths,
-                Shuffle = PlaylistShuffle
-            };
+            int effectiveSecs = GetEffectiveIntervalSeconds();
+            PlayerHelper.ApplyPlaylist(paths, _settings.BuildMpvPlaylistOptions(), PlaylistShuffle, effectiveSecs);
+            // ApplyPlaylist upgrades to timed mode internally when the list contains scenes.
+            // Detect this so the daemon is spawned correctly on GUI close.
+            if (PlayerHelper.IsTimedPlaylistActive())
+                _settings.LastSession = new LastSession { IsTimedPlaylist = true, Paths = paths, Shuffle = PlaylistShuffle, TimedIntervalSeconds = effectiveSecs, WaitForVideoEnd = true };
+            else
+                _settings.LastSession = new LastSession { IsPlaylist = true, Paths = paths, Shuffle = PlaylistShuffle };
             SettingsService.Save(_settings);
             RefreshPlayingStatusSoon();
             return;
@@ -1122,13 +1123,12 @@ public partial class MainWindowViewModel : ViewModelBase
         if (GetEffectiveAdvanceOnVideoEnd())
         {
             // Pre-arranged order; pass shuffle=false so mpv plays the clicked card first.
-            PlayerHelper.ApplyPlaylist(paths, _settings.BuildMpvPlaylistOptions(), shuffle: false);
-            _settings.LastSession = new LastSession
-            {
-                IsPlaylist = true,
-                Paths = allPaths,
-                Shuffle = PlaylistShuffle
-            };
+            int effectiveSecsFromCard = GetEffectiveIntervalSeconds();
+            PlayerHelper.ApplyPlaylist(paths, _settings.BuildMpvPlaylistOptions(), shuffle: false, effectiveSecsFromCard);
+            if (PlayerHelper.IsTimedPlaylistActive())
+                _settings.LastSession = new LastSession { IsTimedPlaylist = true, Paths = allPaths, Shuffle = PlaylistShuffle, TimedIntervalSeconds = effectiveSecsFromCard, WaitForVideoEnd = true };
+            else
+                _settings.LastSession = new LastSession { IsPlaylist = true, Paths = allPaths, Shuffle = PlaylistShuffle };
             SettingsService.Save(_settings);
             RefreshPlayingStatusSoon();
             return;
