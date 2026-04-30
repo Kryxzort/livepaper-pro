@@ -123,7 +123,8 @@ public static class LibraryService
         // Exclude .png files that have a sibling .scene — those are scene thumbnails, not wallpapers.
         var mediaFiles = Directory.GetFiles(DownloadHelper.LibraryPath, "*.mp4")
             .Concat(Directory.GetFiles(DownloadHelper.LibraryPath, "*.png")
-                .Where(f => !File.Exists(Path.ChangeExtension(f, ".scene"))));
+                .Where(f => !File.Exists(Path.ChangeExtension(f, ".scene"))
+                         && !File.Exists(Path.ChangeExtension(f, ".mp4"))));
 
         foreach (var media in mediaFiles)
         {
