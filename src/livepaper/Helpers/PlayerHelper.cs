@@ -1577,7 +1577,7 @@ public static class PlayerHelper
     // Automute-driven mute. Blocked from unmuting if user has explicitly muted via keybind.
     public static void SetMute(bool mute)
     {
-        if (!mute && _userMuted) return;
+        if (!mute && (_userMuted || File.Exists(UserMuteStatePath))) return;
         _isMuted = mute;
         SendCommand("set_property", "mute", mute);
         if (IsLweRunning) ApplyLweMute(mute);

@@ -899,7 +899,7 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnNoAudioChanged(bool value)
     {
         SaveAndRebuild();
-        Task.Run(() => PlayerHelper.SetUserMute(value));
+        Task.Run(() => PlayerHelper.SetMute(value));
         RefreshPlayingStatus();
     }
     partial void OnDisableCacheChanged(bool value) => SaveAndRebuild();
