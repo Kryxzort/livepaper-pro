@@ -831,6 +831,29 @@ public static class PlayerHelper
         }
     }
 
+    public static string? QueryCurrentPath() => TryQueryCurrentPath();
+
+    public static string? QueryCurrentSceneWorkshopId()
+    {
+        if (!File.Exists(LwePidPath)) return null;
+        foreach (var line in File.ReadAllLines(LwePidPath))
+        {
+            if (!int.TryParse(line.Trim(), out int pid)) continue;
+            try
+            {
+                var cmdline = File.ReadAllText($"/proc/{pid}/cmdline");
+                var args = cmdline.Split('\0', StringSplitOptions.RemoveEmptyEntries);
+                // last arg is the workshopId
+                if (args.Length > 0)
+                {
+                    var last = args[^1].Trim();
+                    if (last.Length > 0) return last;
+                }
+            }
+            catch { }
+        }
+        return null;
+    }
     private static string? TryQueryCurrentPath()
     {
         var socketPath = IpcSocket;
