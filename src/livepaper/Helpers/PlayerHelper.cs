@@ -1800,8 +1800,8 @@ public static class PlayerHelper
         var psi = new ProcessStartInfo("setsid")
         {
             UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
+            RedirectStandardOutput = false,
+            RedirectStandardError = false,
         };
         psi.ArgumentList.Add("mpvpaper");
         psi.ArgumentList.Add("-o");
@@ -1809,15 +1809,20 @@ public static class PlayerHelper
         psi.ArgumentList.Add("*");
         psi.ArgumentList.Add(file);
         var process = Process.Start(psi);
-        if (process != null)
+        if (readyTcs != null)
         {
-            process.OutputDataReceived += (_, e) =>
+            Task.Run(async () =>
             {
-                if (readyTcs != null && e.Data != null && (e.Data.StartsWith("AV:") || e.Data.StartsWith("V:")))
-                    readyTcs.TrySetResult(true);
-            };
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
+                for (int i = 0; i < 40; i++)
+                {
+                    await Task.Delay(50).ConfigureAwait(false);
+                    if (TryQueryTimeRemaining() != null)
+                    {
+                        readyTcs.TrySetResult(true);
+                        return;
+                    }
+                }
+            });
         }
         return process;
     }
@@ -1951,8 +1956,8 @@ public static class PlayerHelper
             var psi = new ProcessStartInfo("setsid")
             {
                 UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardOutput = false,
+                RedirectStandardError = false,
             };
             psi.ArgumentList.Add("linux-wallpaperengine");
             psi.ArgumentList.Add("--noautomute");
@@ -1979,8 +1984,6 @@ public static class PlayerHelper
             var proc = Process.Start(psi);
             if (proc != null)
             {
-                proc.BeginOutputReadLine();
-                proc.BeginErrorReadLine();
                 pids.Add(proc.Id.ToString());
             }
         }
