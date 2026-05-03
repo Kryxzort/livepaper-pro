@@ -21,9 +21,9 @@ public static class LibraryService
             Directory.Move(item.CopiedSceneDir, Path.Combine(batchDir, Path.GetFileName(item.CopiedSceneDir)));
     }
 
-    public static void RestoreBatch(string batchDir)
+    public static bool RestoreBatch(string batchDir)
     {
-        if (!Directory.Exists(batchDir)) return;
+        if (!Directory.Exists(batchDir)) return false;
         var fileMoves = Directory.GetFiles(batchDir)
             .Select(f => (Src: f, Dest: Path.Combine(DownloadHelper.LibraryPath, Path.GetFileName(f))))
             .ToList();
@@ -32,10 +32,11 @@ public static class LibraryService
             .ToList();
         // Bail if any destination already exists — avoids clobbering newly added items
         if (fileMoves.Any(m => File.Exists(m.Dest)) || dirMoves.Any(m => Directory.Exists(m.Dest)))
-            return;
+            return false;
         foreach (var m in fileMoves) File.Move(m.Src, m.Dest);
         foreach (var m in dirMoves) Directory.Move(m.Src, m.Dest);
         try { Directory.Delete(batchDir); } catch { }
+        return true;
     }
 
     public static void PurgeBatch(string batchDir)

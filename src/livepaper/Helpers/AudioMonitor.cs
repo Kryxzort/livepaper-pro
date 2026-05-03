@@ -68,7 +68,7 @@ public static class AudioMonitor
     private static volatile bool _isMuted;
     public static bool IsMuted => _isMuted;
     private static int _aboveThresholdCount;
-    private static bool _onlyIfMprisActive;
+    private static volatile bool _onlyIfMprisActive;
 
     // Entry point for the detached `livepaper --monitor` daemon process.
     public static void RunDaemon()
@@ -325,7 +325,8 @@ public static class AudioMonitor
             using var proc = Process.Start(psi);
             if (proc == null) return false;
             var output = proc.StandardOutput.ReadToEnd().Trim();
-            proc.WaitForExit(500);
+            if (!proc.WaitForExit(500))
+                try { proc.Kill(); } catch { }
             return output
                 .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
                 .Any(line => string.Equals(line.Trim(), "Playing", StringComparison.OrdinalIgnoreCase));

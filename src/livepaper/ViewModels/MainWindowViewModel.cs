@@ -1785,10 +1785,16 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (_undoBatches.Count == 0) return;
         var batch = _undoBatches[^1];
+
+        if (!LibraryService.RestoreBatch(batch.BatchDir))
+        {
+            StatusMessage = "Restore failed: files already exist in library";
+            return;
+        }
+
         _undoBatches.RemoveAt(_undoBatches.Count - 1);
         CanUndo = _undoBatches.Count > 0;
 
-        LibraryService.RestoreBatch(batch.BatchDir);
         foreach (var (card, wasInPlaylist) in batch.Items)
         {
             LibraryWallpapers.Add(card);
