@@ -1,0 +1,55 @@
+---
+paths:
+  - "src/livepaper/Helpers/PlayerHelper.cs"
+  - "src/livepaper/Helpers/AudioMonitor.cs"
+---
+
+## Player
+
+`PlayerHelper` is the single entry point for mpvpaper. Kills all existing mpvpaper processes before starting a new one. **stdout/stderr are NOT redirected** for mpvpaper or LWE — `RedirectStandardOutput/Error = false`. Do not add `BeginOutputReadLine/ErrorReadLine` calls.
+
+**IPC readiness**: after spawning mpvpaper, `Launch` polls `TryQueryTimeRemaining()` up to 40 × 50 ms (2 s total). `TryQueryTimeRemaining` splits the raw socket buffer on `\n` and tries to parse each line as JSON — mpv sometimes sends multiple responses in one read.
+
+**Single video:**
+```
+mpvpaper -o "<mpv-options>" '*' /path/to/wallpaper.mp4
+```
+`'*'` targets all Wayland outputs.
+
+**Playlist (Play All / Shuffle):**
+- Shuffle **pre-applied** to path array in `ApplyPlaylist()` (not via `--shuffle`) so order is known for `playlist_observer_paths.json`
+- Writes all-but-last paths to `~/.cache/livepaper/playlist.txt`; passes last as positional arg (N-1 in file + 1 positional = N total)
+- Adds `--playlist=<file> --loop-playlist=inf`; does NOT include `loop` (per-file) in playlist mode
+- If scenes present and `AllowScenes` is true, `ApplyPlaylist` upgrades to `ApplyTimedPlaylist` internally
+
+## Mute: user vs auto
+
+**`SetMute(bool)`** — auto-mute path. If `!mute && (_userMuted || UserMuteStatePath exists)`, returns without unmuting.
+
+**`SetUserMute(bool)`** — user action path. Writes/deletes `UserMuteStatePath`, updates `_userMuted`. `toggle-mute` CLI action uses this, not `cycle mute` IPC.
+
+**`AudioMonitor.IsMuted`** — exposed so `PlayerHelper` can read mute state on LWE launch.
+
+**`PlayerHelper.IsMuted`** — `public bool IsMuted => _isMuted` used by `Program.cs` for toggle-mute 3-way logic.
+
+**Scene→video mute**: `SwitchToFile` bakes `--mute=yes` into `launchOpts` if `_isMuted` is true. Always read `_isMuted` fresh inside the task — never capture into a `bool` local before `Task.Run`, value goes stale.
+
+**LWE orphan prevention**: `_prelaunchPidsToKill` (`private static string[]? _prelaunchPidsToKill`) holds LWE pids from an in-flight scene launch cancelled before the process started. `SwitchToFile` checks and kills these at entry. Also cleared in `TeardownTimer` and crash-detection block.
+
+## Auto-Mute (`AudioMonitor`)
+
+`AudioMonitor.Start/Stop` called by ViewModel when `AutoMute` toggled or settings change. Three concurrent tasks:
+
+1. **`WatchStreamsAsync`** — runs `pactl subscribe`; maintains `ConcurrentDictionary<uint, CancellationTokenSource>` per-stream. On `'new'`: starts `parec`, verifies non-mpv after 100ms. On `'remove'`: cancels immediately. Filters mpv streams (`application.process.binary = "mpv"`) and corked streams.
+
+2. **`MonitorStreamAsync`** — `parec --monitor-stream=<id> --format=float32le --channels=1 --rate=8000 --raw`; reads 160-sample chunks (20ms), computes peak dBFS. `Interlocked.Increment/Decrement` on `_aboveThresholdCount`. `finally` always decrements if above threshold when cancelled.
+
+3. **`WatchMuteAsync`** — polls `_aboveThresholdCount` every 20ms. Counts consecutive ms; fires `PlayerHelper.SetMute` once delay exceeded.
+
+**Critical invariant**: always `--monitor-stream=<id>`. Never `@DEFAULT_MONITOR@` — captures livepaper's own audio → oscillation.
+
+**SDL Application filter**: LWE registers as `application.name = "SDL Application"`. `GetNonMpvStreamIdsAsync()` skips SDL Application sink inputs — otherwise LWE audio triggers auto-mute of itself.
+
+**`_aboveThresholdCount` reset**: `Interlocked.Exchange(..., 0)` at top of `WatchStreamsAsync` (not in `Stop()`), so `finally` blocks from previous run can decrement safely.
+
+**Daemon persistence**: on close with AutoMute enabled, `SpawnDetachedMonitor()` launches `livepaper --monitor` via `setsid`, writes PID to `~/.config/livepaper/monitor.pid`. On next open, `KillDetachedMonitor()` kills it before app's own `AudioMonitor` starts.
