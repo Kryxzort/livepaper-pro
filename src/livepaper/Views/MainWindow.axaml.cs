@@ -454,11 +454,16 @@ public partial class MainWindow : Window
         public SmoothScroller(ScrollViewer sv)
         {
             _sv = sv;
-            sv.AddHandler(PointerWheelChangedEvent, OnWheel, RoutingStrategies.Bubble);
+            sv.AddHandler(PointerWheelChangedEvent, OnWheel, RoutingStrategies.Tunnel);
         }
 
         private void OnWheel(object? sender, PointerWheelEventArgs e)
         {
+            // Let sliders and spinners handle their own wheel events
+            if (e.Source is Slider or NumericUpDown) return;
+            if ((e.Source as Visual)?.FindAncestorOfType<Slider>() != null) return;
+            if ((e.Source as Visual)?.FindAncestorOfType<NumericUpDown>() != null) return;
+
             double delta = e.Delta.Y != 0 ? e.Delta.Y : e.Delta.X;
             _velocity = Math.Clamp(_velocity - delta * Impulse, -MaxVelocity, MaxVelocity);
             e.Handled = true;
