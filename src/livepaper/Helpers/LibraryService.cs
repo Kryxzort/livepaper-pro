@@ -17,6 +17,8 @@ public static class LibraryService
         if (item.ThumbnailPath != null) MoveIfExists(item.ThumbnailPath, batchDir);
         foreach (var ext in new[] { ".jpg", ".png", ".gif", ".jpeg", ".id", ".crashed", ".whitelist", ".volume", ".speed" })
             MoveIfExists(Path.ChangeExtension(item.VideoPath, ext), batchDir);
+        if (item.CopiedSceneDir != null && Directory.Exists(item.CopiedSceneDir))
+            Directory.Move(item.CopiedSceneDir, Path.Combine(batchDir, Path.GetFileName(item.CopiedSceneDir)));
     }
 
     public static void RestoreBatch(string batchDir)
@@ -24,6 +26,8 @@ public static class LibraryService
         if (!Directory.Exists(batchDir)) return;
         foreach (var file in Directory.GetFiles(batchDir))
             File.Move(file, Path.Combine(DownloadHelper.LibraryPath, Path.GetFileName(file)), overwrite: true);
+        foreach (var dir in Directory.GetDirectories(batchDir))
+            Directory.Move(dir, Path.Combine(DownloadHelper.LibraryPath, Path.GetFileName(dir)));
         try { Directory.Delete(batchDir); } catch { }
     }
 
@@ -72,6 +76,9 @@ public static class LibraryService
             var f = Path.ChangeExtension(item.VideoPath, ext);
             if (File.Exists(f)) File.Delete(f);
         }
+
+        if (item.CopiedSceneDir != null && Directory.Exists(item.CopiedSceneDir))
+            Directory.Delete(item.CopiedSceneDir, recursive: true);
     }
 
     public static void MarkCrashed(string videoPath)
@@ -170,7 +177,21 @@ public static class LibraryService
             string idFile = Path.ChangeExtension(scene, ".id");
             string? sourceId = File.Exists(idFile) ? File.ReadAllText(idFile).Trim() : null;
             string? workshopId = null;
-            try { workshopId = File.ReadAllText(scene).Trim(); } catch { }
+            string? copiedSceneDir = null;
+            try
+            {
+                var raw = File.ReadAllText(scene).Trim();
+                if (Path.IsPathRooted(raw))
+                {
+                    copiedSceneDir = raw;
+                    workshopId = ParseWorkshopId(sourceId, scene, idFile);
+                }
+                else
+                {
+                    workshopId = raw;
+                }
+            }
+            catch { }
             bool hasCrashed = File.Exists(Path.ChangeExtension(scene, ".crashed"));
             bool isWhitelisted = File.Exists(Path.ChangeExtension(scene, ".whitelist"));
             int? volumeOverride = ReadVolumeOverride(scene);
@@ -185,6 +206,7 @@ public static class LibraryService
                 SourceId = sourceId,
                 IsScene = true,
                 WorkshopId = workshopId,
+                CopiedSceneDir = copiedSceneDir,
                 HasCrashed = hasCrashed,
                 IsWhitelisted = isWhitelisted,
                 VolumeOverride = volumeOverride,
