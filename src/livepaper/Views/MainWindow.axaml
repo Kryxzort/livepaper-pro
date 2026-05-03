@@ -367,6 +367,8 @@
                                                                   Command="{Binding AddToPlaylistCommand}"/>
                                                         <MenuItem Header="Open in File Manager"
                                                                   Command="{Binding OpenInFileManagerCommand}"/>
+                                                        <MenuItem Header="Settings"
+                                                                  Command="{Binding OpenSettingsCommand}"/>
                                                     </ContextMenu>
                                                 </Border.ContextMenu>
                                                 <Grid RowDefinitions="Auto,*,Auto">
@@ -1202,6 +1204,16 @@
                                         Background="{DynamicResource BgBase}"
                                         PointerEntered="OnCardPointerEntered"
                                         PointerExited="OnCardPointerExited">
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Remove from Playlist"
+                                                      Command="{Binding AddToPlaylistCommand}"/>
+                                            <MenuItem Header="Open in File Manager"
+                                                      Command="{Binding OpenInFileManagerCommand}"/>
+                                            <MenuItem Header="Settings"
+                                                      Command="{Binding OpenSettingsCommand}"/>
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
                                     <Grid Height="90">
                                         <Panel>
                                             <asyncImageLoader:AdvancedImage
