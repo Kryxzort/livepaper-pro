@@ -16,6 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `ffmpeg` — required for thumbnail extraction in the **Import Wallpaper** flow and for extracting static frames from GIF thumbnails in the Wallpaper Engine scraper (cached to `~/.cache/livepaper/we_thumbs/`)
 - `playerctl` *(optional)* — used by `AutoMuteOnlyIfMprisActive`; if absent, `IsAnyMprisPlayerActive()` always returns false (feature silently disabled)
 - `wl-clipboard` — `wl-copy` is invoked by the Settings-tab keybind Copy buttons so snippets persist after livepaper exits. Falls back to Avalonia's clipboard if missing, but the clipboard releases the selection on app close (snippet only pasteable while livepaper is open).
+- `dbus-send` — used by `TryShowItem` to call `org.freedesktop.FileManager1.ShowItems` (highlights file in file manager). Present on all systemd/dbus desktops; falls back to `xdg-open <dir>` if unavailable or if the file manager doesn't implement the interface.
 
 ### Optional
 
@@ -62,12 +63,14 @@ The app has three tabs:
 - Refresh button and loading bar (thin strip below the top bar, no layout shift)
 - Per-card "Download & Apply" downloads + applies that card only
 - **Selection toolbar** docks at bottom when ≥1 card is selected (Shift-click / Ctrl-click / Ctrl+A): "N selected", `Download` (downloads all selected, no apply), `Cancel`
+- **Right-click card**: web sources → "Open Page" (`xdg-open PageUrl`); WE local → "Open in File Manager" (D-Bus `ShowItems` to highlight file, falls back to `xdg-open dir`). Driven by `IsLocalSource` (`PageUrl` not http).
 
 ### Library Tab
 - Grid of all downloaded wallpapers (`ItemsRepeater`, responsive columns); cards show SCENE badge, crash warning icon (⚠) if `HasCrashed`, green border if `IsCurrentlyPlaying`, accent border if selected
 - Circular badge top-right: `+` to add to playlist, `−` to remove. Always visible.
 - Library search box (debounced 200ms) + sort button (6 options: Name A–Z, Z–A, Videos first, Scenes first, Newest, Oldest)
 - Per-card: Apply (sets as wallpaper), Delete (soft-delete → `.trash/`; **Delete** key also triggers; **Ctrl+Z** to undo)
+- **Right-click card**: "Add to Playlist", "Open in File Manager" (D-Bus `ShowItems` to highlight file; scenes open `CopiedSceneDir` or WE workshop dir; symlinks resolved), "Settings" (opens preview modal)
 - "Import" button: file picker (`.mp4`/`.webm`/`.mov`/`.mkv`/`.avi`/`.gif`); title-input modal copies video to library, runs `ffmpeg` for 320px thumbnail at 1s. `.id` sidecar holds `import:<source-path>` for re-import dedupe.
 - "Play All" + "Shuffle" toggle — rotation follows global Settings → PLAYLIST panel
 - "Stop" button (danger style)
@@ -78,6 +81,7 @@ The app has three tabs:
   - 📂/💾 load/save named playlists (modals); stored at `~/.local/share/livepaper/playlists/<name>.json`
   - ▶ Play starts the playlist
   - Playlist auto-state saved to `~/.config/livepaper/playlist_state.json` on every change
+  - **Right-click item**: "Remove from Playlist", "Open in File Manager", "Settings" (opens preview modal)
 - **Status bar**: playback info; animated undo button appears when `CanUndo`
 
 ### Settings Tab
@@ -86,7 +90,7 @@ The app has three tabs:
 - **Auto-Mute**: Mute when system audio plays + threshold/delay knobs + "Only mute if MPRIS media player is active" checkbox
 - **Memory**: Demuxer max bytes / back bytes (NumericUpDown, integer MiB)
 - **Rendering**: Hardware decoding (auto / nvdec / vaapi / no), Video scale (fill / fit)
-- **Sources / Wallpaper Engine**: workshop folder picker, Copy files toggle, "Allow scene support (experimental)" checkbox. When enabled: monitor list editor (name, FPS, primary toggle), scene transition delay slider.
+- **Sources / Wallpaper Engine**: workshop folder picker, Copy files toggle (`WeCopyFiles` — copies videos and scene dirs to library instead of symlinking; for scenes, the full workshop dir is copied and its path stored in `.scene`), "Allow scene support (experimental)" checkbox. When enabled: monitor list editor (name, FPS, primary toggle), scene transition delay slider.
 - **Appearance**: Theme selector (31 built-in themes), Thumbnail aspect ratio (Default / 16:9 / 1:1), Card size (Small / Medium / Large)
 - Live mpv options preview; Reset to Defaults; copy-paste keybind snippets for `--action=…`
 
@@ -173,7 +177,9 @@ Config: `~/.config/livepaper/settings.json` — Cache: `~/.cache/livepaper/`
 | `.speed` | Per-video speed override (double, InvariantCulture) |
 | `.crashed` | Empty file — scene crashed; card shows warning |
 | `.whitelist` | Empty file — scene stays in playlist even if crashed |
-| `.scene` | Library scene entry; content = workshop ID |
+| `.scene` | Library scene entry; content = workshop ID (numeric) OR full path to copied dir when `WeCopyFiles=true` |
+
+`LibraryItem.CopiedSceneDir` is non-null when the scene's workshop directory was copied into the library (`WeCopyFiles=true`). `LibraryService.LoadAll` detects this by checking `Path.IsPathRooted` on the `.scene` content; the workshop ID is recovered from the `.id` sidecar via `ParseWorkshopId`. Trash, RestoreBatch, and Delete all move/restore/delete `CopiedSceneDir` alongside the `.scene` file.
 
 Soft delete moves all sidecars to `.trash/<batchId>/`. Trash is purged on window close or cleared on startup. Ctrl+Z restores the last batch.
 
