@@ -37,6 +37,7 @@ public static class PlayerHelper
     private static double _currentSpeed = 1.0;
     private static CancellationTokenSource? _waitCts;
     private static CancellationTokenSource? _prelaunchCts;
+    private static string[]? _prelaunchPidsToKill;
     private static bool _isMuted;
     private static bool _userMuted;
     private static volatile TaskCompletionSource<bool>? _speedChangeTcs;
@@ -556,6 +557,11 @@ public static class PlayerHelper
             {
                 OnSceneCrashed?.Invoke(_history[_historyIndex]);
                 _timedRemainingMs = 0;
+                // Kill orphaned LWE immediately — the advance may go through DoVideoEndWait
+                // (waitForVideoEnd=true) which doesn't call SwitchToFile right away.
+                _prelaunchCts?.Cancel();
+                _prelaunchCts = null;
+                if (_prelaunchPidsToKill != null) { KillPids(_prelaunchPidsToKill); _prelaunchPidsToKill = null; }
             }
 
             if (_timedTimerStopped)
@@ -656,6 +662,13 @@ public static class PlayerHelper
         // Cancel any in-flight pre-launch transition from a previous switch.
         _prelaunchCts?.Cancel();
         _prelaunchCts = null;
+        // If the cancelled task had deferred LWE pids to kill, do it now so
+        // rapid skipping doesn't accumulate orphan processes.
+        if (_prelaunchPidsToKill != null)
+        {
+            KillPids(_prelaunchPidsToKill);
+            _prelaunchPidsToKill = null;
+        }
 
         bool nextIsScene = IsScenePath(path);
         bool prevIsScene = IsLweRunning;
@@ -698,14 +711,16 @@ public static class PlayerHelper
                     });
                 }
 
+                var capturedLwePids = oldLwePids;
+                _prelaunchPidsToKill = capturedLwePids;
                 var cts = _prelaunchCts = new CancellationTokenSource();
                 var delayMs = settings.SceneTransitionDelayMs;
                 var capturedMpv = oldMpvProcs;
-                var capturedLwePids = oldLwePids;
                 _ = Task.Run(async () =>
                 {
                     try { await Task.Delay(delayMs, cts.Token); }
                     catch { return; }
+                    _prelaunchPidsToKill = null;
                     foreach (var proc in capturedMpv)
                         using (proc) { try { proc.Kill(entireProcessTree: true); } catch { } }
                     if (capturedMpv.Length > 0)
@@ -1925,6 +1940,7 @@ public static class PlayerHelper
         _advanceOnVideoEnd = false;
         _prelaunchCts?.Cancel();
         _prelaunchCts = null;
+        if (_prelaunchPidsToKill != null) { KillPids(_prelaunchPidsToKill); _prelaunchPidsToKill = null; }
         _playlistTimer?.Dispose();
         _playlistTimer = null;
         _timedPaths = null;
