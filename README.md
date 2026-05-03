@@ -16,6 +16,7 @@ A live wallpaper manager for Wayland. Browse and download animated wallpapers fr
 ### Optional
 
 - [linux-wallpaperengine](https://github.com/Almamu/linux-wallpaperengine) — required for Wallpaper Engine **scene** support (enable in Settings → Sources → "Allow scene support")
+- `playerctl` — required for the "Only mute if MPRIS media player is active" Auto-Mute option; without it the option has no effect
 
 ## Installation
 
