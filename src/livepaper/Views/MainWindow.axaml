@@ -172,6 +172,16 @@
                                                 Background="{DynamicResource BgBase}"
                                                 PointerEntered="OnCardPointerEntered"
                                                 PointerExited="OnCardPointerExited">
+                                            <Border.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Open Page"
+                                                              Command="{Binding OpenPageCommand}"
+                                                              IsVisible="{Binding !IsLocalSource}"/>
+                                                    <MenuItem Header="Open in File Manager"
+                                                              Command="{Binding OpenInFileManagerCommand}"
+                                                              IsVisible="{Binding IsLocalSource}"/>
+                                                </ContextMenu>
+                                            </Border.ContextMenu>
                                             <Grid RowDefinitions="Auto,*,Auto">
 
                                                 <Panel Grid.Row="0"

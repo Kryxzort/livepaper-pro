@@ -21,6 +21,7 @@ public partial class WallpaperCardViewModel : ViewModelBase
     public LibraryItem? LibraryItem { get; }
     public bool IsScene { get; }
     public string? WorkshopId { get; }
+    public bool IsLocalSource => !PageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase);
     // Static JPG extracted from GIF for non-animated display. ThumbnailSource stays as the GIF path.
     [ObservableProperty] private string? _staticThumbnailSource;
     public bool IsGifThumbnail => ThumbnailSource.EndsWith(".gif", StringComparison.OrdinalIgnoreCase);
@@ -169,6 +170,14 @@ public partial class WallpaperCardViewModel : ViewModelBase
 
     [RelayCommand]
     private void AddToPlaylist() => OnTogglePlaylist?.Invoke(this);
+
+    [RelayCommand]
+    private void OpenPage()
+    {
+        if (string.IsNullOrEmpty(PageUrl)) return;
+        try { Process.Start(new ProcessStartInfo("xdg-open") { ArgumentList = { PageUrl }, UseShellExecute = false }); }
+        catch { }
+    }
 
     [RelayCommand]
     private void OpenInFileManager()
