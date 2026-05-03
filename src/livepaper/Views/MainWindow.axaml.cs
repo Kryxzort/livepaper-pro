@@ -151,6 +151,10 @@ public partial class MainWindow : Window
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
+        // Don't intercept Delete/Ctrl+Z when a text input control has focus
+        if (TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is TextBox)
+            return;
+
         if (e.Key == Key.Escape)
         {
             if (Vm?.PreviewCard != null)
@@ -450,7 +454,7 @@ public partial class MainWindow : Window
         public SmoothScroller(ScrollViewer sv)
         {
             _sv = sv;
-            sv.AddHandler(PointerWheelChangedEvent, OnWheel, RoutingStrategies.Tunnel);
+            sv.AddHandler(PointerWheelChangedEvent, OnWheel, RoutingStrategies.Bubble);
         }
 
         private void OnWheel(object? sender, PointerWheelEventArgs e)

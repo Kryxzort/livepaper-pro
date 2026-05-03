@@ -1268,7 +1268,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }, TaskScheduler.Default);
     }
 
-    private static void SavePlaylistState(List<string> paths, bool shuffle, int intervalSeconds, bool advanceOnVideoEnd, bool overrideGlobal, string? name)
+    private void SavePlaylistState(List<string> paths, bool shuffle, int intervalSeconds, bool advanceOnVideoEnd, bool overrideGlobal, string? name)
     {
         try
         {
@@ -1280,7 +1280,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     Order = shuffle ? PlaylistOrder.Shuffle : PlaylistOrder.Sequential,
                     OverrideGlobalSettings = overrideGlobal,
                     IntervalSeconds = intervalSeconds,
-                    AdvanceOnVideoEnd = advanceOnVideoEnd
+                    AdvanceOnVideoEnd = advanceOnVideoEnd,
+                    WaitForVideoEnd = PlaylistWaitForVideoEnd
                 },
                 Name = name
             };
@@ -1316,6 +1317,7 @@ public partial class MainWindowViewModel : ViewModelBase
             IntervalMinutes = (secs % 3600) / 60;
             IntervalSeconds = secs % 60;
             AdvanceOnVideoEnd = playlist.Settings.AdvanceOnVideoEnd;
+            PlaylistWaitForVideoEnd = playlist.Settings.WaitForVideoEnd;
             OverrideGlobalSettings = playlist.Settings.OverrideGlobalSettings;
             CurrentPlaylistName = playlist.Name;
         }
@@ -1362,7 +1364,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 Order = PlaylistShuffle ? PlaylistOrder.Shuffle : PlaylistOrder.Sequential,
                 OverrideGlobalSettings = OverrideGlobalSettings,
                 IntervalSeconds = GetIntervalSeconds(),
-                AdvanceOnVideoEnd = AdvanceOnVideoEnd
+                AdvanceOnVideoEnd = AdvanceOnVideoEnd,
+                WaitForVideoEnd = PlaylistWaitForVideoEnd
             }
         };
         try
@@ -1421,6 +1424,7 @@ public partial class MainWindowViewModel : ViewModelBase
             IntervalMinutes = (secs % 3600) / 60;
             IntervalSeconds = (decimal)(secs % 60);
             AdvanceOnVideoEnd = playlist.Settings.AdvanceOnVideoEnd;
+            PlaylistWaitForVideoEnd = playlist.Settings.WaitForVideoEnd;
             OverrideGlobalSettings = playlist.Settings.OverrideGlobalSettings;
 
             CurrentPlaylistName = name;
@@ -1833,7 +1837,19 @@ public partial class MainWindowViewModel : ViewModelBase
             if (_settings.GlobalAdvanceOnVideoEnd)
             {
                 PlayerHelper.ApplyPlaylist(paths, _settings.BuildMpvPlaylistOptions(), ShuffleLibrary, _settings.GlobalIntervalSeconds);
-                _settings.LastSession = new LastSession { IsPlaylist = true, Paths = paths, Shuffle = ShuffleLibrary, AdvanceOnVideoEnd = true, OverrideGlobalSettings = false };
+                if (PlayerHelper.IsTimedPlaylistActive())
+                    _settings.LastSession = new LastSession
+                    {
+                        IsTimedPlaylist = true,
+                        Paths = paths,
+                        Shuffle = ShuffleLibrary,
+                        TimedIntervalSeconds = _settings.GlobalIntervalSeconds,
+                        WaitForVideoEnd = true,
+                        AdvanceOnVideoEnd = true,
+                        OverrideGlobalSettings = false
+                    };
+                else
+                    _settings.LastSession = new LastSession { IsPlaylist = true, Paths = paths, Shuffle = ShuffleLibrary, AdvanceOnVideoEnd = true, OverrideGlobalSettings = false };
                 SettingsService.Save(_settings);
                 RefreshPlayingStatus();
                 return;

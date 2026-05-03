@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -14,6 +15,7 @@ namespace livepaper.ViewModels;
 
 public partial class WallpaperCardViewModel : ViewModelBase
 {
+    private static readonly SemaphoreSlim _metadataSem = new(4, 4);
     public string Title { get; }
     public string ThumbnailSource { get; }
     public string PageUrl { get; }
@@ -265,10 +267,15 @@ public partial class WallpaperCardViewModel : ViewModelBase
     public void LoadDurationAsync()
     {
         if (LibraryItem == null || IsScene) return;
-        Task.Run(() =>
+        Task.Run(async () =>
         {
-            var dur = ReadDuration(LibraryItem.VideoPath);
-            Dispatcher.UIThread.Post(() => VideoDuration = dur);
+            await _metadataSem.WaitAsync();
+            try
+            {
+                var dur = ReadDuration(LibraryItem.VideoPath);
+                Dispatcher.UIThread.Post(() => VideoDuration = dur);
+            }
+            finally { _metadataSem.Release(); }
         });
     }
 
@@ -366,10 +373,15 @@ public partial class WallpaperCardViewModel : ViewModelBase
         string outputPath = Path.Combine(cacheDir, $"{WorkshopId}.jpg");
         Task.Run(async () =>
         {
-            Directory.CreateDirectory(cacheDir);
-            await WallpaperEngineScraper.ExtractGifStaticFrameAsync(gifPath, outputPath);
-            if (File.Exists(outputPath) && new FileInfo(outputPath).Length > 0)
-                Dispatcher.UIThread.Post(() => StaticThumbnailSource = outputPath);
+            await _metadataSem.WaitAsync();
+            try
+            {
+                Directory.CreateDirectory(cacheDir);
+                await WallpaperEngineScraper.ExtractGifStaticFrameAsync(gifPath, outputPath);
+                if (File.Exists(outputPath) && new FileInfo(outputPath).Length > 0)
+                    Dispatcher.UIThread.Post(() => StaticThumbnailSource = outputPath);
+            }
+            finally { _metadataSem.Release(); }
         });
     }
 }

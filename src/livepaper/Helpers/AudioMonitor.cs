@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -314,7 +315,7 @@ public static class AudioMonitor
     {
         try
         {
-            var psi = new ProcessStartInfo("playerctl", "status")
+            var psi = new ProcessStartInfo("playerctl", "status --all-players")
             {
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -325,7 +326,9 @@ public static class AudioMonitor
             if (proc == null) return false;
             var output = proc.StandardOutput.ReadToEnd().Trim();
             proc.WaitForExit(500);
-            return string.Equals(output, "Playing", StringComparison.OrdinalIgnoreCase);
+            return output
+                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+                .Any(line => string.Equals(line.Trim(), "Playing", StringComparison.OrdinalIgnoreCase));
         }
         catch { return false; }
     }
@@ -362,7 +365,7 @@ public static class AudioMonitor
         {
             if (block.Contains("application.process.binary = \"mpv\"")) continue;
             if (block.Contains("application.name = \"mpv\"")) continue;
-            if (block.Contains("application.name = \"SDL Application\"")) continue;
+            if (block.Contains("application.process.binary = \"linux-wallpaperengine\"")) continue;
             var firstLine = block.Split('\n')[0].Trim();
             if (uint.TryParse(firstLine, out uint id))
                 result.Add(id);

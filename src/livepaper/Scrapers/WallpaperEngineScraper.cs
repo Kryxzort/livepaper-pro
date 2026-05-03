@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using livepaper.Models;
 
@@ -31,10 +32,10 @@ public static class WallpaperEngineScraper
             var (thumbnail, animatedGif) = await FindThumbnailAsync(dir);
             var addedAt = Directory.GetCreationTime(dir);
 
-            // Scene detection: type == "scene" OR scene.pkg present
+            // Scene detection: scene.pkg present OR type == "scene"
             bool hasScene = File.Exists(Path.Combine(dir, "scene.pkg"));
-            bool isScene = (info != null && string.Equals(info.Type, "scene", StringComparison.OrdinalIgnoreCase))
-                || (info == null && hasScene);
+            bool isScene = hasScene
+                || (info != null && string.Equals(info.Type, "scene", StringComparison.OrdinalIgnoreCase));
 
             if (isScene)
             {
@@ -175,8 +176,15 @@ public static class WallpaperEngineScraper
             CreateNoWindow = true
         };
         foreach (var arg in args) psi.ArgumentList.Add(arg);
-        using var proc = Process.Start(psi);
-        if (proc == null) return;
-        await proc.WaitForExitAsync();
+        try
+        {
+            using var proc = Process.Start(psi);
+            if (proc == null) return;
+            proc.BeginOutputReadLine();
+            proc.BeginErrorReadLine();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await proc.WaitForExitAsync(cts.Token);
+        }
+        catch { }
     }
 }

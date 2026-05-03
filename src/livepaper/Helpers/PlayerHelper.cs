@@ -29,6 +29,7 @@ public static class PlayerHelper
     private static DateTime _lastTickTime;
     private static readonly TimeSpan TickInterval = TimeSpan.FromMilliseconds(100);
     private static CancellationTokenSource? _observerCts;
+    private static List<string> _currentObserverPaths = [];
     private static readonly object _lock = new();
     private static CancellationTokenSource? _daemonCts;
     private static bool _waitForVideoEnd;
@@ -1039,6 +1040,13 @@ public static class PlayerHelper
                 foreach (var p in rest)
                     TrySendCommand("loadfile", p, "append");
                 TrySendCommand("set", "loop-playlist", "inf");
+
+                // Restart observer with the new playlist order so playlist-pos events
+                // map to the correct cards after reorder
+                var newObserverPaths = new List<string> { currentPath };
+                newObserverPaths.AddRange(rest);
+                StartPlaylistObserver(newObserverPaths);
+                try { File.WriteAllText(PlaylistObserverPathsPath, System.Text.Json.JsonSerializer.Serialize(newObserverPaths)); } catch { }
             }
         }
     }
@@ -1075,8 +1083,13 @@ public static class PlayerHelper
                 var existingInOld = oldPaths.Where(p => !added.Contains(p)).ToList();
                 if (existingInNew.SequenceEqual(existingInOld))
                 {
-                    foreach (var p in newPaths.Where(p => added.Contains(p)))
+                    var appendedPaths = newPaths.Where(p => added.Contains(p)).ToList();
+                    foreach (var p in appendedPaths)
                         TrySendCommand("loadfile", p, "append");
+                    // Extend observer paths with appended items
+                    var extendedPaths = _currentObserverPaths.Concat(appendedPaths).ToList();
+                    StartPlaylistObserver(extendedPaths);
+                    try { File.WriteAllText(PlaylistObserverPathsPath, System.Text.Json.JsonSerializer.Serialize(extendedPaths)); } catch { }
                     return;
                 }
             }
@@ -1114,6 +1127,12 @@ public static class PlayerHelper
             foreach (var p in rest)
                 TrySendCommand("loadfile", p, "append");
             TrySendCommand("set", "loop-playlist", "inf");
+
+            // Restart observer with the new playlist order
+            var newObserverPaths = new List<string> { currentPath };
+            newObserverPaths.AddRange(rest);
+            StartPlaylistObserver(newObserverPaths);
+            try { File.WriteAllText(PlaylistObserverPathsPath, System.Text.Json.JsonSerializer.Serialize(newObserverPaths)); } catch { }
         }
     }
 
@@ -1612,6 +1631,8 @@ public static class PlayerHelper
                     observerPaths = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(PlaylistObserverPathsPath)) ?? session.Paths;
             }
             catch { }
+            _daemonCts?.Dispose();
+            _daemonCts = new CancellationTokenSource();
             StartPlaylistObserver(observerPaths);
         }
         else return;
@@ -1708,6 +1729,7 @@ public static class PlayerHelper
         _observerCts?.Dispose();
         var cts = _observerCts = new CancellationTokenSource();
         var paths = videoPaths.ToArray();
+        _currentObserverPaths = [.. paths];
         Task.Run(() => ObservePathAsync(paths, cts.Token));
     }
 

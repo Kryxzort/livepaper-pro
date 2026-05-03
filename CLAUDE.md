@@ -39,7 +39,7 @@ bash scripts/install.sh                                       # build + install 
 
 ## Architecture
 
-```
+```text
 src/livepaper/
 ├── Models/         # WallpaperResult, WallpaperDetail, LibraryItem, AppSettings, LastSession, AppTheme, LweMonitorSettings
 ├── Scrapers/       # MotionBgsScraper, MoewallsScraper, WallpaperEngineScraper
