@@ -38,10 +38,10 @@ bash scripts/install.sh                                       # build + install 
 
 ```text
 src/livepaper/
-├── Models/         # WallpaperResult, WallpaperDetail, LibraryItem, AppSettings, LastSession
+├── Models/         # WallpaperResult, WallpaperDetail, LibraryItem, AppSettings, LastSession, AppTheme
 ├── Scrapers/       # MotionBgsScraper, MoewallsScraper, WallpaperEngineScraper
 ├── Services/       # IBgsProvider interface + one service per source
-├── Helpers/        # DownloadHelper, PlayerHelper, LibraryService, SettingsService, AudioMonitor
+├── Helpers/        # DownloadHelper, PlayerHelper, LibraryService, SettingsService, AudioMonitor, ThemeService
 ├── ViewModels/     # MVVM (CommunityToolkit.Mvvm)
 └── Views/          # Avalonia XAML views
 ```

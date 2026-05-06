@@ -34,6 +34,7 @@ The app has three tabs:
 - **Memory**: Demuxer max bytes / back bytes (NumericUpDown, integer MiB)
 - **Rendering**: Hardware decoding (auto/nvdec/vaapi/no)
 - **Wallpaper Engine**: workshop folder picker, Copy files toggle
+- **Appearance**: Theme selector (31 built-in)
 - Live mpv options preview; Reset to Defaults; keybind snippets for `--action=…`
 
 ## Key NuGet Packages
@@ -49,13 +50,14 @@ The app has three tabs:
 - **`NumericUpDown.Value` is `decimal?`** — binding to `int` fails silently. Always use `decimal` for `NumericUpDown`-bound properties.
 - **Drag-and-drop in Avalonia 12**: `DataFormat.CreateInProcessFormat<T>`, `DataTransferItem.Create`, `DataTransfer.Add`, `DragDrop.DoDragDropAsync`, `DragEventArgs.DataTransfer` (not `.Data`). For reordering, manual pointer tracking at window level is simpler.
 - **Window-level pointer handler**: `this.AddHandler(PointerPressedEvent, handler, RoutingStrategies.Bubble, handledEventsToo: true)`. Use `IsWithin(source, scrollViewer)` to scope by area; `IsWithinButton(source, stopAt)` with `stopAt` boundary to avoid walking past the container.
+- **`StaticResource` vs `DynamicResource`**: themes require `DynamicResource` — `StaticResource` won't update on theme swap. All color brush bindings use `DynamicResource`.
+
+## Theme System
+
+`ThemeService.All` — 31 built-in themes (`AppTheme` record, 15 color fields). `ThemeService.Apply(theme)` writes all 15 into `Application.Current.Resources` as `SolidColorBrush`. Theme persisted in `AppSettings.Theme`. Applied at init in `App.Initialize()` before any window shows.
+
+Color keys: `BgBase`, `BgMantle`, `BgCrust`, `Surface0`–`Surface2`, `TextColor`, `Subtext`, `Muted`, `Accent`, `AccentFg`, `AccentHover`, `Danger`, `DangerBg`, `Success`.
 
 ## UI Styling
 
-Catppuccin Mocha palette defined as `SolidColorBrush` resources in `App.axaml`:
-- `BgBase` `#1e1e2e`, `BgMantle` `#181825`, `BgCrust` `#11111b`
-- `Surface0/1/2`, `TextColor`, `Subtext`, `Muted`, `Accent` `#89b4fa`, `AccentFg`, `Danger` `#f38ba8`
-
-Button classes: `.accent`, `.ghost`, `.danger`, `.backdrop` (modal overlay — no hover/press feedback).
-Hover states use `/template/ ContentPresenter#PART_ContentPresenter` selectors.
-Tab underline styled via `TabItem:selected /template/ Border#PART_SelectedPipe`.
+Button classes: `.accent`, `.ghost`, `.danger`, `.backdrop` (modal overlay, no hover/press feedback). All buttons: `scale(0.96)` press animation (65ms). Hover via `/template/ ContentPresenter#PART_ContentPresenter`. Tab underline: `TabItem:selected /template/ Border#PART_SelectedPipe`.
