@@ -28,6 +28,12 @@ public class AppSettings
     public double AutoMuteThresholdDb { get; set; } = -70.0;
     public int GlobalIntervalSeconds { get; set; } = 1800;
     public bool GlobalAdvanceOnVideoEnd { get; set; } = true;
+    private int _restartIntervalSeconds = 600;
+    public int RestartIntervalSeconds
+    {
+        get => _restartIntervalSeconds;
+        set => _restartIntervalSeconds = Math.Clamp(value, 5, 3600);
+    }
     public LastSession? LastSession { get; set; }
 
     public string BuildMpvOptions()
