@@ -9,7 +9,7 @@ paths:
 `PlayerHelper` is the single entry point for mpvpaper. Kills all existing mpvpaper processes before starting a new one. stdout/stderr are redirected and drained so mpvpaper output never corrupts the terminal.
 
 **Single video:**
-```
+```sh
 mpvpaper -o "<mpv-options>" '*' /path/to/wallpaper.mp4
 ```
 `'*'` targets all Wayland outputs.
