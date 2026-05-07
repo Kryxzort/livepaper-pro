@@ -29,6 +29,7 @@ bash scripts/install.sh                                       # build + install 
 - `--kill` — stops playback, exits.
 - `--monitor` *(internal)* — starts `AudioMonitor`, blocks. Spawned detached when app closes with AutoMute on.
 - `--timer-daemon` *(internal)* — owns timed-playlist tick loop, blocks. Spawned by `--restore` (timed case) and GUI on close.
+- `--restart-daemon` *(internal)* — periodically kills and relaunches mpvpaper to work around a memory leak. Blocks indefinitely. Spawned by `--restore` and GUI on close whenever something is playing; killed by `--kill` and on app open.
 - `--action=<action>` — sends command to running session, exits. Actions:
   - `toggle-mute`, `toggle-pause`, `stop`, `play`, `toggle-play`
   - `next-wallpaper`, `previous-wallpaper`, `random`
