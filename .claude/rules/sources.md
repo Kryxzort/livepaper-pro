@@ -8,7 +8,7 @@ paths:
 
 All HTTP requests must send a Firefox User-Agent:
 ```text
-Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0
+Mozilla/5.0 (X11; Linux x86_64; rv:150.0) Gecko/20100101 Firefox/150.0
 ```
 Use a single shared `HttpClient` instance (not one per request).
 
